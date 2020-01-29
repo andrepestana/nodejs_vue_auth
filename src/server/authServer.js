@@ -55,6 +55,8 @@ app.post('/login', authenticate)
 function authenticate(req, res) {
   // Authenticate User
   const authData = req.body
+  console.log('requested authData', authData)
+  console.log('available users', users)
   if( users.filter(u => {
     return u.username === authData.username && u.password === authData.password
   }).length === 1) {
@@ -67,6 +69,7 @@ function authenticate(req, res) {
     res.json({ 
       accessToken: accessToken, 
       refreshToken: refreshToken,
+      username: authData.username,
       expiresAt: jwt.decode(accessToken).exp 
     })
   } else {
@@ -75,7 +78,7 @@ function authenticate(req, res) {
 }
 
 function generateAccessToken(user) {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15s' })
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION })
 }
 
 app.listen(4000)

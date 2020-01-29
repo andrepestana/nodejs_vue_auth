@@ -5,26 +5,30 @@ const app = express()
 const jwt = require('jsonwebtoken')
 
 app.use(express.json())
-app.all('/*', function(req, res, next) {
-  // CORS headers
-  res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  // Set custom headers for CORS
-  res.header('Access-Control-Allow-Headers', '*');
-  if (req.method == 'OPTIONS') {
-    res.status(200).end();
-  } else {
-    next();
-  }
-});
+
+if(process.env.ENV === 'dev') {
+  // CORS CONFIGURATION
+  app.all('/*', function(req, res, next) {
+    // CORS headers
+    res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    // Set custom headers for CORS
+    res.header('Access-Control-Allow-Headers', '*');
+    if (req.method == 'OPTIONS') {
+      res.status(200).end();
+    } else {
+      next();
+    }
+  });
+}
 
 const posts = [
   {
-    username: 'Kyle',
+    username: 'a@a.com',
     title: 'Post 1'
   },
   {
-    username: 'Jim',
+    username: 'test@test.com',
     title: 'Post 2'
   }
 ]

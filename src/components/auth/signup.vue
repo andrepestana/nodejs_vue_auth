@@ -94,7 +94,7 @@
       },
       onSubmit () {
         const formData = {
-          email: this.email,
+          username: this.email,
           age: this.age,
           password: this.password,
           confirmPassword: this.confirmPassword,
