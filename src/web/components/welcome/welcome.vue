@@ -7,7 +7,15 @@
     </div>
   </div>
 </template>
-
+<script>
+export default {
+  created() {
+    if(this.$store.getters.isAuthenticated) {
+      this.$router.push('/dashboard')
+    }
+  }
+}
+</script>
 <style scoped>
   #welcome {
     width: 80%;

@@ -1,7 +1,7 @@
 <template>
   <div id="dashboard">
     <h1>Dashboard</h1>
-    <p v-if="username">Username: {{ username }}</p>
+    <p v-if="username">Logged as {{ username }}</p>
     
     <p v-for="(post,index) in posts" :key="index">{{ post.title }}</p>
 
