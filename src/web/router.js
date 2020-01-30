@@ -18,13 +18,17 @@ const routes = [
     path: '/dashboard',
     component: DashboardPage,
     beforeEnter (to, from, next) {
-      if (store.state.auth.user && store.state.auth.user.accessToken) {
-        next()
-      } else {
-        next('/signin')
-      }
+      authAccess(store, next)
     }
   }
 ]
+
+function authAccess(store, next) {
+  if (store.state.auth.user && store.state.auth.user.accessToken) {
+    next()
+  } else {
+    next('/signin')
+  }
+}
 
 export default new VueRouter({mode: 'history', routes})
