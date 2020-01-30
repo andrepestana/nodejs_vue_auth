@@ -9,23 +9,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    accessToken: null,
-    userId: null,
     user: null,
     posts: null,
     messages: []
   },
   mutations: {
     storeAuthUser (state, userData) {
-      state.accessToken = userData.token
-      state.userId = userData.userId
-    },
-    storeUser (state, user) {
-      state.user = user
+      state.user = userData
     },
     clearAuthData (state) {
-      state.accessToken = null
-      state.userId = null
+      state.user = null
     },
     storePosts (state, posts) {
       state.posts = posts
@@ -35,7 +28,6 @@ export default new Vuex.Store({
     },
     addMessage (state, message) {
       state.messages.push(message)
-      console.log('messages', state.messages)
     }
   },
   actions: {
@@ -51,18 +43,8 @@ export default new Vuex.Store({
         returnSecureToken: true
       })
         .then(res => {
-          console.log(res)
-          commit('storeAuthUser', {
-            token: res.data.accessToken,
-            userId: res.data.username
-          })
-          const now = new Date()
-          const expirationDate = new Date(res.data.expiresAt * 1000)
-          localStorage.setItem('token', res.data.accessToken)
-          localStorage.setItem('userId', res.data.username)
-          localStorage.setItem('expirationDate', expirationDate)
-          //dispatch('storeUser', authData)
-          dispatch('setLogoutTimer', res.data.expiresAt)
+          ///////////////
+          dispatch('logUserIn', res)
         })
         .catch(error => console.log(error))
     },
@@ -75,19 +57,9 @@ export default new Vuex.Store({
       })
         .then(res => {
           if(res.status === 200) {
-            const expirationDate = new Date(res.data.expiresAt * 1000)
-            localStorage.setItem('token', res.data.accessToken)
-            localStorage.setItem('userId', res.data.username)
-            localStorage.setItem('expirationDate', expirationDate)
-            commit('storeAuthUser', {
-              token: res.data.accessToken,
-              userId: res.data.username
-            })
-            const milliSecsToExpire = expirationDate - new Date().getTime()
-            dispatch('setLogoutTimer', milliSecsToExpire)
-            router.push('dashboard')
+            ///////////////
+            dispatch('logUserIn', res)
           } else {
-            console.log('Login failed')
             commit('addMessage', {
               messageId: 'loginFailed',
               type: 'warning',
@@ -97,7 +69,6 @@ export default new Vuex.Store({
           }
         })
         .catch(error => {
-          console.log(error)
           commit('addMessage', {
             messageId: 'loginFailed',
             type: 'warning',
@@ -105,33 +76,46 @@ export default new Vuex.Store({
           })
         })
     },
-    tryAutoLogin ({commit}) {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        return
-      }
-      const expirationDate = localStorage.getItem('expirationDate')
-      const now = new Date()
-      if (now >= expirationDate) {
-        return
-      }
-      const userId = localStorage.getItem('userId')
+    logUserIn({commit, dispatch}, res) {
       commit('storeAuthUser', {
-        token: token,
-        userId: userId
+        accessToken: res.data.accessToken,
+        username: res.data.username
+      })
+      const expirationDate = new Date(res.data.expiresAt * 1000)
+      localStorage.setItem('accessToken', res.data.accessToken)
+      localStorage.setItem('username', res.data.username)
+      localStorage.setItem('expirationDateInMilli', expirationDate.getTime())
+      const milliSecsToExpire = expirationDate - new Date().getTime()
+      dispatch('setLogoutTimer', milliSecsToExpire)
+      router.push('dashboard')
+    },
+    tryAutoLogin ({commit}) {
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        return
+      }
+      const expirationDateInMilli = localStorage.getItem('expirationDateInMilli')
+      const now = new Date()
+      if (now.getTime() >= expirationDateInMilli) {
+        return
+      }
+      const username = localStorage.getItem('username')
+      commit('storeAuthUser', {
+        accessToken: accessToken,
+        username: username
       })
     },
     logout ({commit}) {
       commit('clearAuthData')
       localStorage.removeItem('expirationDate')
-      localStorage.removeItem('token')
-      localStorage.removeItem('userId')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('username')
       router.replace('/signin')
     },
     fetchPosts ({commit, state}) {
       let options = {
         headers: {
-          'Authorization': 'Bearer '+state.accessToken
+          'Authorization': 'Bearer '+state.user.accessToken
         }
       }
       globalAxios.get('/posts',  options)
@@ -139,8 +123,6 @@ export default new Vuex.Store({
  
         commit('storePosts', res.data)
         
-        console.log(state.posts)
-        //commit('storeUser', users[0])
       })
       .catch(error => console.log(error))
     }
@@ -150,7 +132,7 @@ export default new Vuex.Store({
       return state.user
     },
     isAuthenticated (state) {
-      return state.accessToken !== null
+      return state.user && state.user.accessToken !== null
     },
     posts (state) {
       return state.posts

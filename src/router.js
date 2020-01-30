@@ -18,7 +18,7 @@ const routes = [
     path: '/dashboard',
     component: DashboardPage,
     beforeEnter (to, from, next) {
-      if (store.state.accessToken) {
+      if (store.state.user && store.state.user.accessToken) {
         next()
       } else {
         next('/signin')

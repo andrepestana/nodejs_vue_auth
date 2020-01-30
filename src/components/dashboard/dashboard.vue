@@ -1,8 +1,7 @@
 <template>
   <div id="dashboard">
-    <h1>That's the dashboard!</h1>
-    <p>You should only get here if you're authenticated!</p>
-    <p v-if="email">Your email address: {{ email }}</p>
+    <h1>Dashboard</h1>
+    <p v-if="username">Username: {{ username }}</p>
     
     <p v-for="(post,index) in posts" :key="index">{{ post.title }}</p>
 
@@ -14,8 +13,10 @@
 
   export default {
     computed: {
-      email () {
-        return !this.$store.getters.user ? false : this.$store.getters.user.email
+      username () {
+        console.log(this.$store.getters.user)
+
+        return !this.$store.getters.user ? false : this.$store.getters.user.username
       },
       posts () {
         return this.$store.getters.posts
@@ -23,7 +24,6 @@
     },
     created () {
       this.$store.dispatch('fetchPosts')
-      console.log('posts: ', this.$store.getters.posts)
     }
     
   }

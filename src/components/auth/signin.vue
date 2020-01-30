@@ -55,7 +55,6 @@
           username: this.email,
           password: this.password,
         }
-        console.log(formData)
         this.$store.dispatch('login', {username: formData.username, password: formData.password})
       }
     },
