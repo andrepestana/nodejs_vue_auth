@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 
 app.use(express.json())
 
-if(process.env.ENV === 'dev') {
+if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
   // CORS CONFIGURATION
   app.all('/*', function(req, res, next) {
     // CORS headers

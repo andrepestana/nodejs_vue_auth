@@ -1,5 +1,16 @@
 <template>
   <div id="signin">
+    
+      <div>
+        <b-alert 
+          v-model="showAlert" 
+          :variant="m.type" 
+          v-for="(m,index) in messages" 
+          :key="index"
+          class="message">
+          {{ m.message }}
+        </b-alert>
+      </div>
     <div class="signin-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
@@ -29,7 +40,13 @@
     data () {
       return {
         email: '',
-        password: ''
+        password: '',
+        showAlert: true
+      }
+    },
+    computed: {
+      messages () {
+        return this.$store.getters.messages
       }
     },
     methods: {
@@ -41,11 +58,18 @@
         console.log(formData)
         this.$store.dispatch('login', {username: formData.username, password: formData.password})
       }
+    },
+    created() {
+      this.$store.commit('clearMessages')
     }
   }
 </script>
 
 <style scoped>
+  .message {
+    padding: auto;
+    margin: 10px;
+  }
   .signin-form {
     width: 400px;
     margin: 30px auto;

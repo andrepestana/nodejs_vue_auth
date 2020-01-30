@@ -12,7 +12,8 @@ export default new Vuex.Store({
     accessToken: null,
     userId: null,
     user: null,
-    posts: null
+    posts: null,
+    messages: []
   },
   mutations: {
     storeAuthUser (state, userData) {
@@ -28,6 +29,13 @@ export default new Vuex.Store({
     },
     storePosts (state, posts) {
       state.posts = posts
+    },
+    clearMessages (state, message) {
+      state.messages = []
+    },
+    addMessage (state, message) {
+      state.messages.push(message)
+      console.log('messages', state.messages)
     }
   },
   actions: {
@@ -59,6 +67,7 @@ export default new Vuex.Store({
         .catch(error => console.log(error))
     },
     login ({commit, dispatch}, authData) {
+      commit('clearMessages')
       axios.post('/login', {
         username: authData.username,
         password: authData.password,
@@ -79,9 +88,22 @@ export default new Vuex.Store({
             router.push('dashboard')
           } else {
             console.log('Login failed')
+            commit('addMessage', {
+              messageId: 'loginFailed',
+              type: 'warning',
+              message: 'Username or Password invalid!'
+            })
+            
           }
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+          console.log(error)
+          commit('addMessage', {
+            messageId: 'loginFailed',
+            type: 'warning',
+            message: 'Username or Password invalid!'
+          })
+        })
     },
     tryAutoLogin ({commit}) {
       const token = localStorage.getItem('token')
@@ -105,33 +127,6 @@ export default new Vuex.Store({
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
       router.replace('/signin')
-    },
-    // storeUser ({commit, state}, userData) {
-    //   if (!state.accessToken) {
-    //     return
-    //   }
-    //   globalAxios.post('/users.json' + '?auth=' + state.accessToken, userData)
-    //     .then(res => console.log(res))
-    //     .catch(error => console.log(error))
-    // },
-    fetchUser ({commit, state}) {
-      if (!state.accessToken) {
-        return
-      }
-      globalAxios.get('/users.json' + '?auth=' + state.accessToken)
-        .then(res => {
-          console.log(res)
-          const data = res.data
-          const users = []
-          for (let key in data) {
-            const user = data[key]
-            user.id = key
-            users.push(user)
-          }
-          console.log(users)
-          commit('storeUser', users[0])
-        })
-        .catch(error => console.log(error))
     },
     fetchPosts ({commit, state}) {
       let options = {
@@ -159,6 +154,9 @@ export default new Vuex.Store({
     },
     posts (state) {
       return state.posts
+    },
+    messages (state) {
+      return state.messages
     }
   }
 })

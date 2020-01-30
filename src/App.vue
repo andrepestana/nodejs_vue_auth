@@ -20,7 +20,7 @@
 
 <style>
   body, html {
-    margin: 0;
+    margin: 0px;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 </style>
