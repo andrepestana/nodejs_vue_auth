@@ -14,8 +14,6 @@
   export default {
     computed: {
       username () {
-        console.log(this.$store.getters.user)
-
         return !this.$store.getters.user ? false : this.$store.getters.user.username
       },
       posts () {

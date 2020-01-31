@@ -77,6 +77,7 @@ const actions = {
           accessToken: res.data.accessToken,
           username: res.data.username
         })
+        axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
         const expirationDate = new Date(res.data.expiresAt * 1000)
         localStorage.setItem('accessToken', res.data.accessToken)
         localStorage.setItem('username', res.data.username)

@@ -2,34 +2,23 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
 import auth from './components/auth/store'
+import messages from './components/messages/store'
 
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    posts: null,
-    messages: []
+    posts: null    
   },
   mutations: {
     storePosts (state, posts) {
       state.posts = posts
-    },
-    clearMessages (state, message) {
-      state.messages = []
-    },
-    addMessage (state, message) {
-      state.messages.push(message)
     }
   },
   actions: {
     fetchPosts ({commit, state}) {
-      let options = {
-        headers: {
-          'Authorization': 'Bearer '+state.auth.user.accessToken
-        }
-      }
-      axios.get('/posts',  options)
+      axios.get('/posts')
       .then(res => {
  
         commit('storePosts', res.data)
@@ -41,12 +30,10 @@ export default new Vuex.Store({
   getters: {
     posts (state) {
       return state.posts
-    },
-    messages (state) {
-      return state.messages
     }
-  },
+   },
   modules: {
-    auth
+    auth,
+    messages
   }
 })

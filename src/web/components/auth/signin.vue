@@ -1,6 +1,5 @@
 <template>
   <div id="signin">
-    
       <div>
         <b-alert 
           v-model="showAlert" 
@@ -55,7 +54,7 @@
           username: this.email,
           password: this.password,
         }
-        this.$store.dispatch('login', {username: formData.username, password: formData.password})
+        this.$store.dispatch('login', formData)
       }
     },
     created() {

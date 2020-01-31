@@ -12,7 +12,7 @@ if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
     res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     // Set custom headers for CORS
-    res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
+    res.header('Access-Control-Allow-Headers', '*');
     if (req.method == 'OPTIONS') {
       res.status(200).end();
     } else {
