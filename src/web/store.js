@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import globalAxios from 'axios'
+import axios from 'axios'
 import auth from './components/auth/store'
-import router from './router'
+
 
 Vue.use(Vuex)
 
@@ -29,7 +29,7 @@ export default new Vuex.Store({
           'Authorization': 'Bearer '+state.auth.user.accessToken
         }
       }
-      globalAxios.get('/posts',  options)
+      axios.get('/posts',  options)
       .then(res => {
  
         commit('storePosts', res.data)

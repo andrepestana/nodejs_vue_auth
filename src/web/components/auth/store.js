@@ -9,18 +9,18 @@ const getters = {
     user (state) {
         return state.user
       },
-      isAuthenticated (state) {
+    isAuthenticated (state) {
         return state.user && state.user.accessToken !== null
-      }
+    }
 }
 
 const mutations = {
     storeAuthUser (state, userData) {
         state.user = userData
-      },
-      clearAuthData (state) {
+    },
+    clearAuthData (state) {
         state.user = null
-      }
+    }
 }
 
 const actions = {
@@ -102,7 +102,7 @@ const actions = {
           username: username
         })
       },
-      
+
       logout ({commit}) {
         commit('clearAuthData')
         localStorage.removeItem('expirationDate')

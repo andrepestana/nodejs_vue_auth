@@ -1,34 +1,25 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
 import store from './store'
-
 import WelcomePage from './components/welcome/welcome.vue'
 import DashboardPage from './components/dashboard/dashboard.vue'
-import SignupPage from './components/auth/signup.vue'
-import SigninPage from './components/auth/signin.vue'
+import authRoutes from './components/auth/router'
+import authUtil from './components/auth/authUtil'
 
 Vue.use(VueRouter)
 
-const routes = [
+let routes = [
   { path: '/', component: WelcomePage },
-  { path: '/signup', component: SignupPage },
-  { path: '/signin', component: SigninPage },
   {
     path: '/dashboard',
     component: DashboardPage,
     beforeEnter (to, from, next) {
-      authAccess(store, next)
+      authUtil.authRouteAccess(store, next)
     }
   }
 ]
-
-function authAccess(store, next) {
-  if (store.state.auth.user && store.state.auth.user.accessToken) {
-    next()
-  } else {
-    next('/signin')
-  }
-}
+routes = routes.concat(
+  authRoutes
+)
 
 export default new VueRouter({mode: 'history', routes})
