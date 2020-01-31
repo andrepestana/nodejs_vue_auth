@@ -1,15 +1,6 @@
 <template>
   <div id="signin">
-      <div>
-        <b-alert 
-          v-model="showAlert" 
-          :variant="m.type" 
-          v-for="(m,index) in messages" 
-          :key="index"
-          class="message">
-          {{ m.message }}
-        </b-alert>
-      </div>
+    <messages :showAlert="true"></messages>
     <div class="signin-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
@@ -35,17 +26,13 @@
 </template>
 
 <script>
+  import messages from '../messages/messages.vue'
+
   export default {
     data () {
       return {
         email: '',
-        password: '',
-        showAlert: true
-      }
-    },
-    computed: {
-      messages () {
-        return this.$store.getters.messages
+        password: ''     
       }
     },
     methods: {
@@ -59,6 +46,9 @@
     },
     created() {
       this.$store.commit('clearMessages')
+    },
+    components: {
+        messages
     }
   }
 </script>

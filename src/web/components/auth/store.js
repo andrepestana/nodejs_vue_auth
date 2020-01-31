@@ -31,6 +31,7 @@ const actions = {
       },
       
       signup ({commit, dispatch}, authData) {
+        commit('clearMessages')
         axios.post('/signup', {
           username: authData.username,
           password: authData.password,

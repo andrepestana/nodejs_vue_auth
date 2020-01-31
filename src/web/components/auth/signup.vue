@@ -1,15 +1,6 @@
 <template>
   <div id="signup">
-    <div>
-      <b-alert 
-        v-model="showAlert" 
-        :variant="m.type" 
-        v-for="(m,index) in messages" 
-        :key="index"
-        class="message">
-        {{ m.message }}
-      </b-alert>
-    </div>
+    <messages :showAlert="true"></messages>
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
@@ -79,6 +70,8 @@
 </template>
 
 <script>
+  import messages from '../messages/messages.vue'
+
   export default {
     data () {
       return {
@@ -88,8 +81,7 @@
         confirmPassword: '',
         country: 'usa',
         hobbyInputs: [],
-        terms: false,
-        showAlert: true
+        terms: false
       }
     },
     methods: {
@@ -116,13 +108,11 @@
         this.$store.dispatch('signup', formData)
       }
     },
-    computed: {
-      messages () {
-        return this.$store.getters.messages
-      }
-    },
     created() {
       this.$store.commit('clearMessages')
+    },
+    components: {
+        messages
     }
   }
 </script>
