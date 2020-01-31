@@ -37,10 +37,18 @@ const actions = {
           returnSecureToken: true
         })
           .then(res => {
-            ///////////////
             dispatch('logUserIn', res)
           })
-          .catch(error => console.log(error))
+          .catch(error => {
+            if(error.response && error.response.status && error.response.status === 409) {
+                commit('addMessage', {
+                    messageId: 'signupFailed',
+                    type: 'warning',
+                    message: 'Username already exists!'
+                })
+            }
+            console.log(error)
+          })
       },
       
       login ({commit, dispatch}, authData) {
@@ -52,7 +60,6 @@ const actions = {
         })
           .then(res => {
             if(res.status === 200) {
-              ///////////////
               dispatch('logUserIn', res)
             } else {
               commit('addMessage', {
@@ -102,6 +109,7 @@ const actions = {
           accessToken: accessToken,
           username: username
         })
+        axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
       },
 
       logout ({commit}) {

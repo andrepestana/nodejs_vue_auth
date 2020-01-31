@@ -1,5 +1,15 @@
 <template>
   <div id="signup">
+    <div>
+      <b-alert 
+        v-model="showAlert" 
+        :variant="m.type" 
+        v-for="(m,index) in messages" 
+        :key="index"
+        class="message">
+        {{ m.message }}
+      </b-alert>
+    </div>
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
@@ -78,7 +88,8 @@
         confirmPassword: '',
         country: 'usa',
         hobbyInputs: [],
-        terms: false
+        terms: false,
+        showAlert: true
       }
     },
     methods: {
@@ -104,6 +115,14 @@
         }
         this.$store.dispatch('signup', formData)
       }
+    },
+    computed: {
+      messages () {
+        return this.$store.getters.messages
+      }
+    },
+    created() {
+      this.$store.commit('clearMessages')
     }
   }
 </script>
