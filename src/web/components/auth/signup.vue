@@ -106,10 +106,13 @@
           terms: this.terms
         }
         this.$store.dispatch('signup', formData)
+      },
+      clearMessages() {
+        this.$store.commit('clearMessages')
       }
     },
     created() {
-      this.$store.commit('clearMessages')
+      this.clearMessages()
     },
     components: {
         messages

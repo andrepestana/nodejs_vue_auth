@@ -8,14 +8,16 @@
           <input
                   type="email"
                   id="email"
-                  v-model="email">
+                  v-model="email"
+                  @focus="clearMessages()">
         </div>
         <div class="input">
           <label for="password">Password</label>
           <input
                   type="password"
                   id="password"
-                  v-model="password">
+                  v-model="password"
+                  @focus="clearMessages()">
         </div>
         <div class="submit">
           <button type="submit">Submit</button>
@@ -42,10 +44,13 @@
           password: this.password,
         }
         this.$store.dispatch('login', formData)
+      },
+      clearMessages() {
+        this.$store.commit('clearMessages')
       }
     },
     created() {
-      this.$store.commit('clearMessages')
+      this.clearMessages()
     },
     components: {
         messages
