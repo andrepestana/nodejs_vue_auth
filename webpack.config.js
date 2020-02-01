@@ -1,6 +1,7 @@
 const {VueLoaderPlugin} = require('vue-loader')
 const path = require('path')
 const webpack = require('webpack')
+require('dotenv').config({ path: './src/web/.env'})
 
 module.exports = {
   entry: './src/web/main.js',
@@ -84,8 +85,9 @@ if (process.env.NODE_ENV === 'prod') {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"dev"',
-        API_URL: '"http://localhost:3000"',
-        AUTH_URL: '"http://localhost:4000"'
+        VUE_APP_API_URL: '"'+process.env.VUE_APP_API_URL+'"',
+        VUE_APP_AUTH_URL: '"'+process.env.VUE_APP_AUTH_URL+'"',
+        VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI: '"'+process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI+'"'        
       }
     })
   ])

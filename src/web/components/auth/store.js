@@ -2,7 +2,8 @@ import axios from './axios-auth'
 import router from '../../router'
 
 const state = {
-    user: null
+    user: null,
+
 }
 
 const getters = {
@@ -20,14 +21,22 @@ const mutations = {
     },
     clearAuthData (state) {
         state.user = null
+    },
+    showRefreshTokenMessage (state, payload) {
+      state.user ? state.user.showRefreshTokenMessage = payload : false
     }
 }
 
 const actions = {
-    setLogoutTimer ({commit}, expirationTime) {
+      setLogoutTimer ({dispatch}, {refreshToken, expirationTimeInMilli}) {
         setTimeout(() => {
-          commit('clearAuthData')
-        }, expirationTime)
+          dispatch('logout', refreshToken)
+        }, expirationTimeInMilli)
+      },
+      setRefreshTokenTimer ({commit}, expirationTimeInMilli) {
+        setTimeout(() => {
+          commit('showRefreshTokenMessage', true)
+        }, expirationTimeInMilli - process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
       },
       
       signup ({commit, dispatch}, authData) {
@@ -37,19 +46,30 @@ const actions = {
           password: authData.password,
           returnSecureToken: true
         })
-          .then(res => {
-            dispatch('logUserIn', res)
-          })
-          .catch(error => {
-            if(error.response && error.response.status && error.response.status === 409) {
-                commit('addMessage', {
-                    messageId: 'signupFailed',
-                    type: 'warning',
-                    message: 'Username already exists!'
-                })
-            }
-            console.log(error)
-          })
+        .then(res => {
+          dispatch('logUserIn', res)
+        })
+        .catch(error => {
+          if(!error.response) {
+            commit('addMessage', {
+              messageId: 'loginError',
+              type: 'danger',
+              message: 'Login error: ' + error
+            })
+          } else if(error.response.status === 409) {
+              commit('addMessage', {
+                  messageId: 'signupFailed',
+                  type: 'warning',
+                  message: 'Username already exists!'
+              })
+          } else {
+            commit('addMessage', {
+              messageId: 'loginError',
+              type: 'danger',
+              message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
+            })
+          }
+        })
       },
       
       login ({commit, dispatch}, authData) {
@@ -59,39 +79,50 @@ const actions = {
           password: authData.password,
           returnSecureToken: true
         })
-          .then(res => {
-            if(res.status === 200) {
-              dispatch('logUserIn', res)
-            } else {
-              commit('addMessage', {
-                messageId: 'loginFailed',
-                type: 'warning',
-                message: 'Username or Password invalid!'
-              })
-              
-            }
-          })
-          .catch(error => {
+        .then(res => {
+            dispatch('logUserIn', res)
+        })
+        .catch(error => {
+          if(!error.response) {
+            commit('addMessage', {
+              messageId: 'loginError',
+              type: 'danger',
+              message: 'Login error: ' + error
+            })
+          } else if(error.response.status === 401) {
             commit('addMessage', {
               messageId: 'loginFailed',
               type: 'warning',
               message: 'Username or Password invalid!'
             })
-          })
+          } else {
+            commit('addMessage', {
+              messageId: 'loginError',
+              type: 'danger',
+              message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
+            })
+          }
+        })
       },
 
       logUserIn({commit, dispatch}, res) {
+        const expirationDate = new Date(res.data.expiresAt * 1000)
+        const milliSecsToExpire = expirationDate - new Date().getTime()
         commit('storeAuthUser', {
           accessToken: res.data.accessToken,
-          username: res.data.username
+          refreshToken: res.data.refreshToken,
+          username: res.data.username,
+          expirationDateInMilli: expirationDate.getTime(),
+          showRefreshTokenMessage: false
         })
         axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
-        const expirationDate = new Date(res.data.expiresAt * 1000)
         localStorage.setItem('accessToken', res.data.accessToken)
+        localStorage.setItem('refreshToken', res.data.refreshToken)
         localStorage.setItem('username', res.data.username)
         localStorage.setItem('expirationDateInMilli', expirationDate.getTime())
-        const milliSecsToExpire = expirationDate - new Date().getTime()
-        dispatch('setLogoutTimer', milliSecsToExpire)
+        dispatch('setLogoutTimer', {refreshToken: res.data.refreshToken, expirationTimeInMilli: milliSecsToExpire})
+        dispatch('setRefreshTokenTimer', milliSecsToExpire)
+        
         router.push('dashboard')
       },
 
@@ -106,19 +137,52 @@ const actions = {
           return
         }
         const username = localStorage.getItem('username')
+        const refreshToken = localStorage.getItem('refreshToken')
         commit('storeAuthUser', {
           accessToken: accessToken,
-          username: username
+          username: username,
+          refreshToken: refreshToken,
+          expirationDateInMilli: expirationDateInMilli,
+          showRefreshTokenMessage: false
         })
         axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
       },
 
-      logout ({commit}) {
-        commit('clearAuthData')
-        localStorage.removeItem('expirationDate')
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('username')
-        router.replace('/signin')
+      logout ({commit}, refreshToken) {
+        axios.delete('/logout', {
+          refreshToken: refreshToken
+        })
+        .then(res => {
+          commit('clearMessages')
+          commit('clearAuthData')
+          localStorage.removeItem('expirationDateInMilli')
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('username')
+          delete axios.defaults.headers.common["Authorization"]
+          
+          commit('addMessage', {
+            messageId: 'loggedOut',
+            type: 'warning',
+            message: 'You\'ve been logged out.'
+          })
+          router.replace('/signin')
+        })
+        .catch(error => {
+          if(!error.response) {
+            commit('addMessage', {
+              messageId: 'logoutError',
+              type: 'danger',
+              message: 'Login error: ' + error
+            })
+          } else {
+            commit('addMessage', {
+              messageId: 'logoutError',
+              type: 'danger',
+              message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
+            })
+          }
+        })
       }
 }
 

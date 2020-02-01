@@ -1,8 +1,8 @@
 {
-  "name": "vue-update",
-  "description": "Vue Auth & more",
+  "name": "nodejs_vue_auth",
+  "description": "NodeJS VUE Auth",
   "version": "1.0.0",
-  "author": "Maximilian Schwarzmüller <business@academind.com>",
+  "author": "Andre Pestana",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=dev webpack-dev-server --open --hot",

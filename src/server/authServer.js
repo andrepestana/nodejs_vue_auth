@@ -96,7 +96,7 @@ function retrieveUserByUsername(username) {
 }
 
 app.delete('/logout', (req, res) => {
-  deleteRefreshToken(req.body.token)
+  deleteRefreshToken(req.body.refreshToken)
   res.sendStatus(204)
 })
 

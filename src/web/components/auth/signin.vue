@@ -8,16 +8,14 @@
           <input
                   type="email"
                   id="email"
-                  v-model="email"
-                  @focus="clearMessages()">
+                  v-model="email">
         </div>
         <div class="input">
           <label for="password">Password</label>
           <input
                   type="password"
                   id="password"
-                  v-model="password"
-                  @focus="clearMessages()">
+                  v-model="password">
         </div>
         <div class="submit">
           <button type="submit">Submit</button>
@@ -29,8 +27,9 @@
 
 <script>
   import messages from '../messages/messages.vue'
-
+  import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
   export default {
+    mixins: [removeMessagesWhenLeaving],
     data () {
       return {
         email: '',
@@ -44,14 +43,14 @@
           password: this.password,
         }
         this.$store.dispatch('login', formData)
-      },
-      clearMessages() {
-        this.$store.commit('clearMessages')
       }
     },
     created() {
-      this.clearMessages()
+      if(this.$store.getters.isAuthenticated) {
+        this.$router.push('/dashboard')
+      }
     },
+    
     components: {
         messages
     }

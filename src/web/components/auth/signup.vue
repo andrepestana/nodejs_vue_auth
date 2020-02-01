@@ -71,8 +71,9 @@
 
 <script>
   import messages from '../messages/messages.vue'
-
+  import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
   export default {
+    mixins: [removeMessagesWhenLeaving],
     data () {
       return {
         email: '',
@@ -112,7 +113,9 @@
       }
     },
     created() {
-      this.clearMessages()
+      if(this.$store.getters.isAuthenticated) {
+        this.$router.push('/dashboard')
+      }
     },
     components: {
         messages
