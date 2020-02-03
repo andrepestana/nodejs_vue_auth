@@ -49,7 +49,7 @@ function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION })
 }
 function generateRefreshToken(user, process) {
-  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION });
 }
 
 app.post('/token', (req, res) => {

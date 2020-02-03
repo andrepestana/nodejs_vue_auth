@@ -4,7 +4,6 @@
     <p v-if="username">Logged as {{ username }}</p>
     
     <p v-for="(post,index) in posts" :key="index">{{ post.title }}</p>
-    <p>showRefreshTokenMessage :{{showRefreshTokenMessage}}</p>
   </div>
 </template>
 
