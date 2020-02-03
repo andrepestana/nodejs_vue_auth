@@ -28,6 +28,7 @@
 <script>
   import messages from '../messages/messages.vue'
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
+  
   export default {
     mixins: [removeMessagesWhenLeaving],
     data () {

@@ -113,7 +113,8 @@ const actions = {
           refreshToken: res.data.refreshToken,
           username: res.data.username,
           expirationDateInMilli: expirationDate.getTime(),
-          showRefreshTokenMessage: false
+          showRefreshTokenMessage: false,
+          timeToShowRefreshAccessTokenBeforeExpirationInMilli: process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI
         })
         axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
         localStorage.setItem('accessToken', res.data.accessToken)
