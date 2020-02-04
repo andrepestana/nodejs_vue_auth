@@ -52,7 +52,7 @@ if (process.env.FAKE_PERSISTENT_DATA) {
 
 if (process.env.FAKE_PERSISTENT_DATA) {
   app.get('/posts', authenticateToken, (req, res) => {
-    res.json(posts.filter(post => post.username === req.user.name))
+    res.json(posts.filter(post => post.username === req.user.username))
   })
 } else {
   throw 'Not implemented yet for non fake persistent data'

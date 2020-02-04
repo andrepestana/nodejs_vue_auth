@@ -53,7 +53,7 @@ function generateRefreshToken(user, process) {
 }
 
 app.post('/token', (req, res) => {
-  const refreshToken = req.body.token
+  const refreshToken = req.body.refreshToken
 
   if (refreshToken == null) return res.sendStatus(401) //unauthorized
 
@@ -61,8 +61,15 @@ app.post('/token', (req, res) => {
 
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403)
-    const accessToken = generateAccessToken({ name: user.name })
-    res.json({ accessToken: accessToken })
+    const accessToken = generateAccessToken({ 'username': user.username })
+    
+    res.json({ 
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      username: jwt.decode(accessToken).username,
+      accessTokenExpiresAt: jwt.decode(accessToken).exp,
+      refreshTokenExpiresAt: jwt.decode(refreshToken).exp
+    })
   })
 })
 
@@ -107,7 +114,7 @@ function authenticate(req, res) {
 
   if (checkUsernameAndPassword(authData)) {
     const username = req.body.username
-    const user = { name: username }
+    const user = { 'username': username }
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
 
@@ -117,7 +124,8 @@ function authenticate(req, res) {
       accessToken: accessToken,
       refreshToken: refreshToken,
       username: authData.username,
-      expiresAt: jwt.decode(accessToken).exp
+      accessTokenExpiresAt: jwt.decode(accessToken).exp,
+      refreshTokenExpiresAt: jwt.decode(refreshToken).exp
     })
   } else {
     return res.sendStatus(401)

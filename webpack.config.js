@@ -87,7 +87,7 @@ if (process.env.NODE_ENV === 'prod') {
         NODE_ENV: '"dev"',
         VUE_APP_API_URL: '"'+process.env.VUE_APP_API_URL+'"',
         VUE_APP_AUTH_URL: '"'+process.env.VUE_APP_AUTH_URL+'"',
-        VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI: '"'+process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI+'"'        
+        VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI: '"'+process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI+'"'        
       }
     })
   ])

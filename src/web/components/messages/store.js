@@ -3,7 +3,7 @@ const state = {
 }
 
 const mutations = { 
-    clearMessages (state, message) {
+    clearMessages (state) {
         state.messages = []
     },
     addMessage (state, message) {

@@ -21,9 +21,6 @@ const mutations = {
     },
     clearAuthData (state) {
         state.user = null
-    },
-    showRefreshTokenMessage (state, payload) {
-      state.user ? state.user.showRefreshTokenMessage = payload : false
     }
 }
 
@@ -33,10 +30,18 @@ const actions = {
           dispatch('logout', refreshToken)
         }, expirationTimeInMilli)
       },
-      setRefreshTokenTimer ({commit}, expirationTimeInMilli) {
+      setRefreshTokenTimer ({dispatch}, expirationTimeInMilli) {
         setTimeout(() => {
-          commit('showRefreshTokenMessage', true)
-        }, expirationTimeInMilli - process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
+          axios.post('/token', {
+            refreshToken: state.user.refreshToken            
+          })
+          .then(res => {
+            dispatch('logUserIn', res)
+          })
+          .catch(error => {
+            dispatch('logout', error)
+          })
+        }, expirationTimeInMilli - process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
       },
       
       signup ({commit, dispatch}, authData) {
@@ -81,6 +86,7 @@ const actions = {
         })
         .then(res => {
             dispatch('logUserIn', res)
+            router.push('/')
         })
         .catch(error => {
           if(!error.response) {
@@ -106,47 +112,70 @@ const actions = {
       },
 
       logUserIn({commit, dispatch}, res) {
-        const expirationDate = new Date(res.data.expiresAt * 1000)
-        const milliSecsToExpire = expirationDate - new Date().getTime()
+        const accessTokenExpirationDate = new Date(res.data.accessTokenExpiresAt * 1000)
+        const refreshTokenExpirationDate = new Date(res.data.refreshTokenExpiresAt * 1000)
+        const milliSecsToExpire = accessTokenExpirationDate - new Date().getTime()
         commit('storeAuthUser', {
           accessToken: res.data.accessToken,
           refreshToken: res.data.refreshToken,
           username: res.data.username,
-          expirationDateInMilli: expirationDate.getTime(),
-          showRefreshTokenMessage: false,
-          timeToShowRefreshAccessTokenBeforeExpirationInMilli: process.env.VUE_APP_ASK_USER_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI
+          accessTokenExpirationDateInMilli: accessTokenExpirationDate.getTime(),
+          refreshTokenExpirationDateInMilli: refreshTokenExpirationDate.getTime(),
+          timeToRefreshAccessTokenBeforeExpirationInMilli: process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI
         })
         axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
         localStorage.setItem('accessToken', res.data.accessToken)
         localStorage.setItem('refreshToken', res.data.refreshToken)
         localStorage.setItem('username', res.data.username)
-        localStorage.setItem('expirationDateInMilli', expirationDate.getTime())
-        dispatch('setLogoutTimer', {refreshToken: res.data.refreshToken, expirationTimeInMilli: milliSecsToExpire})
-        dispatch('setRefreshTokenTimer', milliSecsToExpire)
+        localStorage.setItem('accessTokenExpirationDateInMilli', accessTokenExpirationDate.getTime())
+        localStorage.setItem('refreshTokenExpirationDateInMilli', refreshTokenExpirationDate.getTime())
         
-        router.push('dashboard')
+        dispatch('setRefreshTokenTimer', milliSecsToExpire)
       },
 
-      tryAutoLogin ({commit}) {
-        const accessToken = localStorage.getItem('accessToken')
-        if (!accessToken) {
-          return
-        }
-        const expirationDateInMilli = localStorage.getItem('expirationDateInMilli')
-        const now = new Date()
-        if (now.getTime() >= expirationDateInMilli) {
-          return
-        }
-        const username = localStorage.getItem('username')
+      tryAutoLogin ({commit, dispatch}) {
+       
+        const refreshTokenExpirationDateInMilli = localStorage.getItem('refreshTokenExpirationDateInMilli')
         const refreshToken = localStorage.getItem('refreshToken')
+        if (!refreshToken) {
+          commit('clearAuthData')
+          return
+        }
+        const now = new Date()
+        if (now.getTime() >= refreshTokenExpirationDateInMilli) {
+          commit('clearAuthData')
+          return
+        }
+        const accessToken = localStorage.getItem('accessToken')
+        const accessTokenExpirationDateInMilli = localStorage.getItem('accessTokenExpirationDateInMilli')
+        const username = localStorage.getItem('username')
+
+        if (now.getTime() >= accessTokenExpirationDateInMilli) {
+          //refreshToken
+          axios.post('/token', {
+            refreshToken: refreshToken            
+          })
+          .then(res => {
+            dispatch('logUserIn', res)
+            router.push('/dashboard')
+          })
+          .catch(error => {
+            dispatch('logout', error)
+          })
+          return
+        }
+        
         commit('storeAuthUser', {
           accessToken: accessToken,
           username: username,
           refreshToken: refreshToken,
-          expirationDateInMilli: expirationDateInMilli,
-          showRefreshTokenMessage: false
+          accessTokenExpirationDateInMilli: accessTokenExpirationDateInMilli
         })
         axios.defaults.headers.common['Authorization'] = 'Bearer '+state.user.accessToken
+        
+        const accessTokenMilliSecsFromNowToExpire = accessTokenExpirationDateInMilli - new Date().getTime()
+        dispatch('setRefreshTokenTimer', accessTokenMilliSecsFromNowToExpire)
+        
       },
 
       logout ({commit}, refreshToken) {
@@ -156,7 +185,8 @@ const actions = {
         .then(res => {
           commit('clearMessages')
           commit('clearAuthData')
-          localStorage.removeItem('expirationDateInMilli')
+          localStorage.removeItem('refreshTokenExpirationDateInMilli')
+          localStorage.removeItem('accessTokenExpirationDateInMilli')
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('username')
