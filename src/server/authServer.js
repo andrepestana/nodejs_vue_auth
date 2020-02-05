@@ -43,7 +43,7 @@ function revokeRefreshToken(token) {
 }
 function saveLogonInformation(logonData) {
   if (process.env.FAKE_PERSISTENT_DATA) {
-    return logonDataArray.push(logonData);
+    return logonDataArray.push(logonData)
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }
@@ -52,7 +52,7 @@ function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION })
 }
 function generateRefreshToken(user, process) {
-  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION });
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION })
 }
 
 app.post('/token', (req, res) => {
@@ -65,13 +65,15 @@ app.post('/token', (req, res) => {
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403)
     const accessToken = generateAccessToken({ 'username': user.username })
-    
+    let accessTokenExpirationDate = jwt.decode(accessToken).exp * 1000
+    let refreshTokenExpirationDate = jwt.decode(refreshToken).exp * 1000
+    let username = jwt.decode(accessToken).username
     res.json({ 
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      username: jwt.decode(accessToken).username,
-      accessTokenExpiresAt: jwt.decode(accessToken).exp,
-      refreshTokenExpiresAt: jwt.decode(refreshToken).exp
+      accessToken,
+      refreshToken,
+      username,
+      accessTokenExpirationDate,
+      refreshTokenExpirationDate
     })
   })
 })
@@ -122,18 +124,23 @@ function authenticate(req, res) {
     const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
 
     let clientInfo = getClientInfo(req)
+    let accessTokenExpirationDate = jwt.decode(accessToken).exp * 1000
+    let refreshTokenExpirationDate = jwt.decode(refreshToken).exp * 1000
+    let refreshTokenCreatedDate = jwt.decode(refreshToken).iat * 1000
     saveLogonInformation({
       username,
       refreshToken,
-      clientInfo
+      clientInfo,
+      refreshTokenCreatedDate,
+      refreshTokenExpirationDate
     })
 
     res.json({
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+      accessToken,
+      refreshToken,
       username: authData.username,
-      accessTokenExpiresAt: jwt.decode(accessToken).exp,
-      refreshTokenExpiresAt: jwt.decode(refreshToken).exp
+      accessTokenExpirationDate,
+      refreshTokenExpirationDate
     })
   } else {
     return res.sendStatus(401)
