@@ -172,7 +172,7 @@ function checkUsernameAndPassword(authData) {
     let usersArray = users.filter(u => {
       return u.username === authData.username
     })
-    return encryptUtil.comparePassword(authData.password, usersArray[0].password) 
+    return usersArray.length && encryptUtil.comparePassword(authData.password, usersArray[0].password) 
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }

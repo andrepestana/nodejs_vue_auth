@@ -31,14 +31,14 @@ const actions = {
     }, expirationTimeInMilli)
   },
   setRefreshTokenTimer({ dispatch }, expirationTimeInMilli) {
-    
+
     setTimeout(() => {
       if (state.user) {
         axios.post('/token', {
           refreshToken: state.user.refreshToken
         })
           .then(res => {
-            dispatch('logUserIn', res)
+            dispatch('registerLoggedUser', res)
           })
           .catch(error => {
             dispatch('logout', error)
@@ -55,7 +55,7 @@ const actions = {
       returnSecureToken: true
     })
       .then(res => {
-        dispatch('logUserIn', res)
+        dispatch('registerLoggedUser', res)
         router.push('/')
       })
       .catch(error => {
@@ -89,7 +89,7 @@ const actions = {
       returnSecureToken: true
     })
       .then(res => {
-        dispatch('logUserIn', res)
+        dispatch('registerLoggedUser', res)
         router.push('/')
       })
       .catch(error => {
@@ -115,7 +115,7 @@ const actions = {
       })
   },
 
-  logUserIn({ commit, dispatch }, res) {
+  registerLoggedUser({ commit, dispatch }, res) {
     const accessTokenExpirationDate = res.data.accessTokenExpirationDate
     const refreshTokenExpirationDate = res.data.refreshTokenExpirationDate
     const milliSecsToExpire = accessTokenExpirationDate - new Date().getTime()
@@ -129,9 +129,7 @@ const actions = {
     }
     commit('storeAuthUser', authUserData)
     axios.defaults.headers.common['Authorization'] = 'Bearer ' + state.user.accessToken
-
     saveAuthDataToLocalStorage(authUserData)
-
     dispatch('setRefreshTokenTimer', milliSecsToExpire)
   },
 
@@ -157,7 +155,7 @@ const actions = {
         refreshToken: refreshToken
       })
         .then(res => {
-          dispatch('logUserIn', res)
+          dispatch('registerLoggedUser', res)
           router.push('/dashboard')
         })
         .catch(error => {
@@ -165,7 +163,7 @@ const actions = {
         })
       return
     }
-
+    
     commit('storeAuthUser', {
       accessToken,
       username,
@@ -181,16 +179,19 @@ const actions = {
 
   },
 
-  logout({ commit }) {
+  deregisterLoggedUser({ commit }) {
+    commit('clearAuthData')
+    removeAuthDataFromLocalStorage(localStorage)
+    delete axios.defaults.headers.common["Authorization"]
+  },
+
+  logout({ commit, dispatch }) {
     axios.delete('/logout', {
       params: { refreshToken: state.user.refreshToken }
     })
       .then(res => {
+        dispatch('deregisterLoggedUser')
         commit('clearMessages')
-        commit('clearAuthData')
-        removeAuthDataFromLocalStorage(localStorage)
-        delete axios.defaults.headers.common["Authorization"]
-
         commit('addMessage', {
           messageId: 'loggedOut',
           type: 'warning',
