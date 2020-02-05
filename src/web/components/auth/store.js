@@ -32,15 +32,17 @@ const actions = {
       },
       setRefreshTokenTimer ({dispatch}, expirationTimeInMilli) {
         setTimeout(() => {
-          axios.post('/token', {
-            refreshToken: state.user.refreshToken            
-          })
-          .then(res => {
-            dispatch('logUserIn', res)
-          })
-          .catch(error => {
-            dispatch('logout', error)
-          })
+          if(state.user) {
+            axios.post('/token', {
+              refreshToken: state.user.refreshToken            
+            })
+            .then(res => {
+              dispatch('logUserIn', res)
+            })
+            .catch(error => {
+              dispatch('logout', error)
+            })
+          }
         }, expirationTimeInMilli - process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
       },
       
@@ -53,6 +55,7 @@ const actions = {
         })
         .then(res => {
           dispatch('logUserIn', res)
+          router.push('/')
         })
         .catch(error => {
           if(!error.response) {
@@ -178,9 +181,9 @@ const actions = {
         
       },
 
-      logout ({commit}, refreshToken) {
+      logout ({commit}) {
         axios.delete('/logout', {
-          refreshToken: refreshToken
+          params: { refreshToken: state.user.refreshToken }
         })
         .then(res => {
           commit('clearMessages')

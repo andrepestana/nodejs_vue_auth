@@ -21,26 +21,29 @@ if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
   });
 }
 
-let refreshTokens = []
+let logonDataArray = []
 let users = []
 
-function isRefreshTokenActive(refreshToken) {
+function isRefreshTokenActive(token) {
   if (process.env.FAKE_PERSISTENT_DATA) {
-    return refreshTokens.includes(refreshToken);
+    let filterResult = logonDataArray.filter(l => l.refreshToken === token)
+    if(filterResult.length) return filterResult[0].revoked !== true
+    else return false
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }
 }
-function deleteRefreshToken(token) {
+function revokeRefreshToken(token) {
   if (process.env.FAKE_PERSISTENT_DATA) {
-    return refreshTokens = refreshTokens.filter(t => t !== token);
+    let filterResult = logonDataArray.filter(l => l.refreshToken === token)
+    if(filterResult.length) filterResult[0].revoked = true
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }  
 }
-function saveRefreshToken(refreshToken) {
+function saveLogonInformation(logonData) {
   if (process.env.FAKE_PERSISTENT_DATA) {
-    return refreshTokens.push(refreshToken);
+    return logonDataArray.push(logonData);
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }
@@ -103,7 +106,7 @@ function retrieveUserByUsername(username) {
 }
 
 app.delete('/logout', (req, res) => {
-  deleteRefreshToken(req.body.refreshToken)
+  revokeRefreshToken(req.query.refreshToken)
   res.sendStatus(204)
 })
 
@@ -118,7 +121,12 @@ function authenticate(req, res) {
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
 
-    saveRefreshToken(refreshToken)
+    let clientInfo = getClientInfo(req)
+    saveLogonInformation({
+      username,
+      refreshToken,
+      clientInfo
+    })
 
     res.json({
       accessToken: accessToken,
@@ -130,6 +138,25 @@ function authenticate(req, res) {
   } else {
     return res.sendStatus(401)
   }
+}
+
+function getClientInfo(request) {
+  let clientInfo = {
+    clientIPaddr: null,
+    clientProxy: null
+  }
+
+  // is client going through a proxy?
+  if (request.headers['via']) {
+    clientInfo.clientIPaddr = request.headers['x-forwarded-for']
+    clientInfo.clientProxy = request.headers['via']
+  } else {
+    clientInfo.clientIPaddr = request.connection.remoteAddress
+    clientInfo.clientProxy = "none"
+  }
+  clientInfo.userAgent = request.headers['user-agent']
+  
+  return clientInfo
 }
 
 function checkUsernameAndPassword(authData) {
