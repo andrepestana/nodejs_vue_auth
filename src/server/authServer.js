@@ -1,8 +1,8 @@
 require('dotenv').config()
-
 const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
+const encryptUtil = require('./encryptUtil')
 
 app.use(express.json())
 
@@ -79,9 +79,10 @@ app.post('/token', (req, res) => {
 })
 
 app.post('/signup', (req, res) => {
+  const password = encryptUtil.cryptPassword(req.body.password)
   const user = {
     username: req.body.username,
-    password: req.body.password
+    password
   }
   if (!retrieveUserByUsername(user.username)) {
     saveUser(user);
@@ -169,9 +170,9 @@ function getClientInfo(request) {
 function checkUsernameAndPassword(authData) {
   if (process.env.FAKE_PERSISTENT_DATA) {
     let usersArray = users.filter(u => {
-      return u.username === authData.username && u.password === authData.password
+      return u.username === authData.username
     })
-    return usersArray.length
+    return encryptUtil.comparePassword(authData.password, usersArray[0].password) 
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }

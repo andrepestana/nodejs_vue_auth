@@ -1,6 +1,5 @@
 #TODO
 
-- save encrypted passwords
 - fix signup validation
 - create user roles
 - create page for only admin user to see all user "sessions"
