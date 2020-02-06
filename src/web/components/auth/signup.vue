@@ -4,18 +4,12 @@
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
-          <label for="email">Mail</label>
+          <label for="username">Mail</label>
           <input
-                  type="email"
-                  id="email"
-                  v-model="email">
-        </div>
-        <div class="input">
-          <label for="age">Your Age</label>
-          <input
-                  type="number"
-                  id="age"
-                  v-model.number="age">
+                  type="text"
+                  id="username"
+                  v-model="username">
+          <validation-messages messageForId="username"></validation-messages>
         </div>
         <div class="input">
           <label for="password">Password</label>
@@ -32,6 +26,13 @@
                   v-model="confirmPassword">
         </div>
         <div class="input">
+          <label for="age">Your Age</label>
+          <input
+                  type="number"
+                  id="age"
+                  v-model.number="age">
+        </div>
+        <!-- <div class="input">
           <label for="country">Country</label>
           <select id="country" v-model="country">
             <option value="usa">USA</option>
@@ -39,24 +40,7 @@
             <option value="uk">UK</option>
             <option value="germany">Germany</option>
           </select>
-        </div>
-        <div class="hobbies">
-          <h3>Add some Hobbies</h3>
-          <button @click="onAddHobby" type="button">Add Hobby</button>
-          <div class="hobby-list">
-            <div
-                    class="input"
-                    v-for="(hobbyInput, index) in hobbyInputs"
-                    :key="hobbyInput.id">
-              <label :for="hobbyInput.id">Hobby #{{ index }}</label>
-              <input
-                      type="text"
-                      :id="hobbyInput.id"
-                      v-model="hobbyInput.value">
-              <button @click="onDeleteHobby(hobbyInput.id)" type="button">X</button>
-            </div>
-          </div>
-        </div>
+        </div> -->
         <div class="input inline">
           <input type="checkbox" id="terms" v-model="terms">
           <label for="terms">Accept Terms of Use</label>
@@ -71,39 +55,27 @@
 
 <script>
   import messages from '../messages/messages.vue'
+  import validationMessages from '../messages/validationMessages.vue'
+
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
   export default {
     mixins: [removeMessagesWhenLeaving],
     data () {
       return {
-        email: '',
+        username: '',
         age: null,
         password: '',
         confirmPassword: '',
-        country: 'usa',
-        hobbyInputs: [],
         terms: false
       }
     },
     methods: {
-      onAddHobby () {
-        const newHobby = {
-          id: Math.random() * Math.random() * 1000,
-          value: ''
-        }
-        this.hobbyInputs.push(newHobby)
-      },
-      onDeleteHobby (id) {
-        this.hobbyInputs = this.hobbyInputs.filter(hobby => hobby.id !== id)
-      },
       onSubmit () {
         const formData = {
-          username: this.email,
-          age: this.age,
+          username: this.username,
           password: this.password,
           confirmPassword: this.confirmPassword,
-          country: this.country,
-          hobbies: this.hobbyInputs.map(hobby => hobby.value),
+          age: this.age,
           terms: this.terms
         }
         this.$store.dispatch('signup', formData)
@@ -118,7 +90,8 @@
       }
     },
     components: {
-        messages
+        messages,
+        validationMessages
     }
   }
 </script>

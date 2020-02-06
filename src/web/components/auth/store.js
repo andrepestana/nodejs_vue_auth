@@ -71,6 +71,8 @@ const actions = {
             type: 'warning',
             message: 'Username already exists!'
           })
+        } else if (error.response.status === 422) {
+          commit('addMessages', error.response.data)
         } else {
           commit('addMessage', {
             messageId: 'loginError',

@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
 const encryptUtil = require('./encryptUtil')
+const userValidation = require('./validation/userValidation')
 
 app.use(express.json())
 
@@ -79,11 +80,25 @@ app.post('/token', (req, res) => {
 })
 
 app.post('/signup', (req, res) => {
+  let validationMessages = []
+  
+  // validate form
+  validationMessages = mergeArrays(validationMessages, userValidation.validateUsername(req.body.username))
+  validationMessages = mergeArrays(validationMessages, userValidation.validatePassword(req.body.password))
+  validationMessages = mergeArrays(validationMessages, userValidation.validateAge(req.body.age))
+  
+  // return 422 in case of invalid
+  if(validationMessages.length) {
+    return res.status(422).send(validationMessages.filter((vm) => vm != undefined))
+  }
+
   const password = encryptUtil.cryptPassword(req.body.password)
   const user = {
     username: req.body.username,
-    password
+    password,
+    age: req.body.age
   }
+
   if (!retrieveUserByUsername(user.username)) {
     saveUser(user);
   } else {
@@ -91,6 +106,15 @@ app.post('/signup', (req, res) => {
   }
   authenticate(req, res)
 })
+
+function mergeArrays(arr1, arr2) {
+  if(!Array.isArray(arr1)) throw 'First arg is not an array'
+  if(!Array.isArray(arr2)) throw 'Second arg is not an array'
+  if(arr2.length) {
+    return arr1.concat(arr2)
+  } else return arr1
+}
+
 
 function saveUser(user) {
   if (process.env.FAKE_PERSISTENT_DATA) {

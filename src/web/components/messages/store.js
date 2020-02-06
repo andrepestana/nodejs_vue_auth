@@ -8,6 +8,9 @@ const mutations = {
     },
     addMessage (state, message) {
         state.messages.push(message)
+    },
+    addMessages (state, messages) {
+        state.messages = state.messages.concat(messages)
     }
 }
 
