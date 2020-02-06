@@ -48,6 +48,15 @@ module.exports = {
         validationMessages.pushDefined(required(age, messageForId, messageId, fieldName))
 
         return validationMessages
+    },
+    validateTerms: function(terms) {
+        const messageForId = "terms"
+        const messageId = "termsValidation"
+        const fieldName = "Accepting Terms"
+        let validationMessages = new ExtendedArray()
+        validationMessages.pushDefined(required(terms, messageForId, messageId, fieldName))
+ 
+        return validationMessages
     }
 }
 function required(input, messageForId, messageId, fieldName) {

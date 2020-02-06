@@ -1,5 +1,5 @@
 export default {
     destroyed() {
-        this.$store.commit('clearMessages')
+        this.$store.commit('clearAllMessages')
     }
   }

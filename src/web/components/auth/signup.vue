@@ -5,10 +5,11 @@
       <form @submit.prevent="onSubmit">
         <div class="input">
           <label for="username">Mail</label>
-          <input
+          <input  refs="username"
                   type="text"
                   id="username"
-                  v-model="username">
+                  v-model="username"
+                  @focus="clearMessageById($event)">
           <validation-messages messageForId="username"></validation-messages>
         </div>
         <div class="input">
@@ -16,7 +17,8 @@
           <input
                   type="password"
                   id="password"
-                  v-model="password">
+                  v-model="password"
+                  @focus="clearMessageById($event)">
           <validation-messages messageForId="password"></validation-messages>
         </div>
         <div class="input">
@@ -24,7 +26,8 @@
           <input
                   type="password"
                   id="confirm-password"
-                  v-model="confirmPassword">
+                  v-model="confirmPassword"
+                  @focus="clearMessageById($event)">
           <validation-messages messageForId="confirm-password"></validation-messages>  
         </div>
         <div class="input">
@@ -32,21 +35,17 @@
           <input
                   type="number"
                   id="age"
-                  v-model.number="age">
+                  v-model.number="age"
+                  @focus="clearMessageById($event)">
           <validation-messages messageForId="age"></validation-messages>
         </div>
-        <!-- <div class="input">
-          <label for="country">Country</label>
-          <select id="country" v-model="country">
-            <option value="usa">USA</option>
-            <option value="india">India</option>
-            <option value="uk">UK</option>
-            <option value="germany">Germany</option>
-          </select>
-        </div> -->
         <div class="input inline">
-          <input type="checkbox" id="terms" v-model="terms">
+          <input  type="checkbox" 
+                  id="terms" 
+                  v-model="terms"
+                  @focus="clearMessageById($event)">
           <label for="terms">Accept Terms of Use</label>
+          <validation-messages messageForId="terms"></validation-messages>
         </div>
         <div class="submit">
           <button type="submit">Submit</button>
@@ -83,8 +82,11 @@
         }
         this.$store.dispatch('signup', formData)
       },
-      clearMessages() {
-        this.$store.commit('clearMessages')
+      clearAllMessages() {
+        this.$store.commit('clearAllMessages')
+      },
+      clearMessageById(e){
+        this.$store.commit('clearMessagesById', e.target.id)
       }
     },
     created() {

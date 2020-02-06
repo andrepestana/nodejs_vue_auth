@@ -48,7 +48,7 @@ const actions = {
   },
 
   signup({ commit, dispatch }, authData) {
-    commit('clearMessages')
+    commit('clearAllMessages')
     axios.post('/signup', authData)
       .then(res => {
         dispatch('registerLoggedUser', res)
@@ -80,7 +80,7 @@ const actions = {
   },
 
   login({ commit, dispatch }, authData) {
-    commit('clearMessages')
+    commit('clearAllMessages')
     axios.post('/login', {
       username: authData.username,
       password: authData.password,
@@ -189,7 +189,7 @@ const actions = {
     })
       .then(res => {
         dispatch('deregisterLoggedUser')
-        commit('clearMessages')
+        commit('clearAllMessages')
         commit('addMessage', {
           messageId: 'loggedOut',
           type: 'warning',

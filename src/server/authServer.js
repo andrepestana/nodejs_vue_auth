@@ -88,6 +88,7 @@ app.post('/signup', (req, res) => {
   validationMessages.pushArray(userValidation.validatePassword(req.body.password))
   validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.password, req.body.confirmPassword))
   validationMessages.pushArray(userValidation.validateAge(req.body.age))
+  validationMessages.pushArray(userValidation.validateTerms(req.body.terms))
   
   // return 422 in case of invalid
   if(validationMessages.length) {

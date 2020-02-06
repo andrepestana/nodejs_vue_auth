@@ -3,8 +3,11 @@ const state = {
 }
 
 const mutations = { 
-    clearMessages (state) {
+    clearAllMessages (state) {
         state.messages = []
+    },
+    clearMessagesById (state, id) {
+        state.messages = state.messages.filter(m => m.messageForId !== id);
     },
     addMessage (state, message) {
         state.messages.push(message)
