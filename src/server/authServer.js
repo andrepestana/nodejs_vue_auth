@@ -4,6 +4,7 @@ const app = express()
 const jwt = require('jsonwebtoken')
 const encryptUtil = require('./encryptUtil')
 const userValidation = require('./validation/userValidation')
+const ExtendedArray = require('./util/ExtendedArray.js')
 
 app.use(express.json())
 
@@ -80,12 +81,13 @@ app.post('/token', (req, res) => {
 })
 
 app.post('/signup', (req, res) => {
-  let validationMessages = []
-  
+  let validationMessages = new ExtendedArray()
+ 
   // validate form
-  validationMessages = mergeArrays(validationMessages, userValidation.validateUsername(req.body.username))
-  validationMessages = mergeArrays(validationMessages, userValidation.validatePassword(req.body.password))
-  validationMessages = mergeArrays(validationMessages, userValidation.validateAge(req.body.age))
+  validationMessages.pushArray(userValidation.validateUsername(req.body.username))
+  validationMessages.pushArray(userValidation.validatePassword(req.body.password))
+  validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.password, req.body.confirmPassword))
+  validationMessages.pushArray(userValidation.validateAge(req.body.age))
   
   // return 422 in case of invalid
   if(validationMessages.length) {
@@ -106,15 +108,6 @@ app.post('/signup', (req, res) => {
   }
   authenticate(req, res)
 })
-
-function mergeArrays(arr1, arr2) {
-  if(!Array.isArray(arr1)) throw 'First arg is not an array'
-  if(!Array.isArray(arr2)) throw 'Second arg is not an array'
-  if(arr2.length) {
-    return arr1.concat(arr2)
-  } else return arr1
-}
-
 
 function saveUser(user) {
   if (process.env.FAKE_PERSISTENT_DATA) {

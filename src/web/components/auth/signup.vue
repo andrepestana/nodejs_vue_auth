@@ -17,6 +17,7 @@
                   type="password"
                   id="password"
                   v-model="password">
+          <validation-messages messageForId="password"></validation-messages>
         </div>
         <div class="input">
           <label for="confirm-password">Confirm Password</label>
@@ -24,6 +25,7 @@
                   type="password"
                   id="confirm-password"
                   v-model="confirmPassword">
+          <validation-messages messageForId="confirm-password"></validation-messages>  
         </div>
         <div class="input">
           <label for="age">Your Age</label>
@@ -31,6 +33,7 @@
                   type="number"
                   id="age"
                   v-model.number="age">
+          <validation-messages messageForId="age"></validation-messages>
         </div>
         <!-- <div class="input">
           <label for="country">Country</label>

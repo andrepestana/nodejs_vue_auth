@@ -1,7 +1,11 @@
 <template>
     <div>
-        <div class="alert alert-danger" role="alert">
-           {{ message }}
+        <div class="alert alert-danger" role="alert" v-if="messages.length">
+           <ul class="list-unstyled">
+               <li v-for="(message,index) in messages" :key="index">
+                   {{ message.message }}
+               </li>
+           </ul>
         </div>
     </div>
 </template>
@@ -11,16 +15,8 @@ export default {
         messageForId: String
     },
     computed: {
-      message () {
-        
-        this.$store.getters.messages.forEach(m => {
-            console.log(m.messageForId, this.messageForId)
-            if(m.messageForId === this.messageForId) {
-                console.log('jjjjjj')
-                return m
-            }
-        });
-        return {};
+      messages () {
+        return this.$store.getters.messages.filter(m => m.messageForId === this.messageForId);
       } 
     }
 }

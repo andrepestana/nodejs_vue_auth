@@ -49,11 +49,7 @@ const actions = {
 
   signup({ commit, dispatch }, authData) {
     commit('clearMessages')
-    axios.post('/signup', {
-      username: authData.username,
-      password: authData.password,
-      returnSecureToken: true
-    })
+    axios.post('/signup', authData)
       .then(res => {
         dispatch('registerLoggedUser', res)
         router.push('/')

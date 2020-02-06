@@ -1,10 +1,12 @@
+const ExtendedArray = require('../util/ExtendedArray.js')
+
 module.exports = {
     validateUsername:  function(username) {
         const messageForId = "username"
         const messageId = "usernameValidation"
         const fieldName = "Username"
-        let validationMessages = []
-        validationMessages.push(required(username, messageForId, messageId, fieldName))
+        let validationMessages = new ExtendedArray()
+        validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
 
         return validationMessages
     },
@@ -12,8 +14,29 @@ module.exports = {
         const messageForId = "password"
         const messageId = "passwordValidation"
         const fieldName = "Password"
-        let validationMessages = []
-        validationMessages.push(required(password, messageForId, messageId, fieldName))
+        let validationMessages = new ExtendedArray()
+        validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
+
+        return validationMessages
+    },
+    validateConfirmPassword: function(password, confirmPassword) {
+        const messageForId = "confirm-password"
+        const messageId = "confirmPasswordValidation"
+        const fieldName = "Confirm Password"
+        let validationMessages = new ExtendedArray()
+        
+        validationMessages.pushDefined(required(confirmPassword, messageForId, messageId, fieldName))
+        if(validationMessages.length) return validationMessages
+        
+        if(password && confirmPassword && password !== confirmPassword) {
+            validationMessages.pushDefined({
+                messageForId,
+                messageId,
+                message: `${fieldName} is different from Password`,
+                type: 'danger',
+                category: 'validation'
+            })
+        }
 
         return validationMessages
     },
@@ -21,8 +44,8 @@ module.exports = {
         const messageForId = "age"
         const messageId = "ageValidation"
         const fieldName = "Age"
-        let validationMessages = []
-        validationMessages.push(required(age, messageForId, messageId, fieldName))
+        let validationMessages = new ExtendedArray()
+        validationMessages.pushDefined(required(age, messageForId, messageId, fieldName))
 
         return validationMessages
     }
@@ -32,7 +55,9 @@ function required(input, messageForId, messageId, fieldName) {
         return {
             messageForId,
             messageId,
-            message: `${fieldName} is required`
+            message: `${fieldName} is required`,
+            type: 'danger',
+            category: 'validation'
         }
-    }
+    } else return null
 }
