@@ -21,10 +21,10 @@ module.exports = {
         
         validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
         validationMessages.pushDefined(stringMin(password, messageForId, messageId, fieldName, minLength))
-        // validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'A-Z', 'uppercase character'))
-        // validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'a-z', 'lowercase character'))
-        // validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, '0-9', 'number'))
-        // validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, '!@#\$%\^\&*\)\(+=._-]+', 'special characters like !@#\$%\^\&*\)\(+=._-]+'))
+        validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'A-Z', 'uppercase character'))
+        validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'a-z', 'lowercase character'))
+        validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, '0-9', 'number'))
+        validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, regExpEscape('"\'-[]{}()*+!<=:?./\\^$|#,'), 'special characters like "\'-[]{}()*+!<=:?./\\^$|#,'))
 
         return validationMessages
     },
@@ -119,7 +119,7 @@ function areEqual(input, messageForId, messageId, fieldName, input2, fieldName2)
 }
 function mustContainOneOf(input, messageForId, messageId, fieldName, chars, charsName) {
     if(input) {
-        let re = new RegExp('/^['+chars+']+$/');
+        let re = new RegExp('['+chars+']');
         if(!re.test(input)) {
             return {
                 messageForId,
@@ -130,4 +130,7 @@ function mustContainOneOf(input, messageForId, messageId, fieldName, chars, char
             }
         }
     }
+}
+function regExpEscape(literal_string) {
+    return literal_string.replace(/["\'-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&');
 }
