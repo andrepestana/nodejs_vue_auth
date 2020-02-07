@@ -43,7 +43,7 @@
           <input  type="checkbox" 
                   id="terms" 
                   v-model="terms"
-                  @focus="clearMessageById($event)">
+                  @click="clearMessageById($event)">
           <label for="terms">Accept Terms of Use</label>
           <validation-messages messageForId="terms"></validation-messages>
         </div>
