@@ -3,7 +3,7 @@ import router from '../../router'
 
 const state = {
   user: null,
-
+  userSessions: []
 }
 
 const getters = {
@@ -12,6 +12,9 @@ const getters = {
   },
   isAuthenticated(state) {
     return state.user && state.user.accessToken !== null
+  },
+  userSessions(state) {
+    return state.userSessions
   }
 }
 
@@ -21,10 +24,26 @@ const mutations = {
   },
   clearAuthData(state) {
     state.user = null
+  },
+  storeUserSessions(state, userSessions) {
+    state.userSessions = userSessions
   }
 }
 
 const actions = {
+  getUserSessions({commit}) {
+    axios.get('/userSessions')
+    .then(res => {
+      commit('storeUserSessions', res.data)
+    })
+    .catch(error => {
+      commit('addMessage', {
+        messageId: 'errorWhileGettingUserSessions',
+        type: 'danger',
+        message: 'Error while getting user sessions: ' + error.response.status + ': ' + error.response.statusText
+      })
+    })
+  },
   setLogoutTimer({ dispatch }, { refreshToken, expirationTimeInMilli }) {
     setTimeout(() => {
       dispatch('logout', refreshToken)
@@ -37,12 +56,12 @@ const actions = {
         axios.post('/token', {
           refreshToken: state.user.refreshToken
         })
-          .then(res => {
-            dispatch('registerLoggedUser', res)
-          })
-          .catch(error => {
-            dispatch('logout', error)
-          })
+        .then(res => {
+          dispatch('registerLoggedUser', res)
+        })
+        .catch(error => {
+          dispatch('logout', error)
+        })
       }
     }, expirationTimeInMilli - process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
   },
@@ -50,33 +69,33 @@ const actions = {
   signup({ commit, dispatch }, authData) {
     commit('clearAllMessages')
     axios.post('/signup', authData)
-      .then(res => {
-        dispatch('registerLoggedUser', res)
-        router.push('/')
-      })
-      .catch(error => {
-        if (!error.response) {
-          commit('addMessage', {
-            messageId: 'loginError',
-            type: 'danger',
-            message: 'Login error: ' + error
-          })
-        } else if (error.response.status === 409) {
-          commit('addMessage', {
-            messageId: 'signupFailed',
-            type: 'warning',
-            message: 'Username already exists!'
-          })
-        } else if (error.response.status === 422) {
-          commit('addMessages', error.response.data)
-        } else {
-          commit('addMessage', {
-            messageId: 'loginError',
-            type: 'danger',
-            message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
-          })
-        }
-      })
+    .then(res => {
+      dispatch('registerLoggedUser', res)
+      router.push('/')
+    })
+    .catch(error => {
+      if (!error.response) {
+        commit('addMessage', {
+          messageId: 'loginError',
+          type: 'danger',
+          message: 'Login error: ' + error
+        })
+      } else if (error.response.status === 409) {
+        commit('addMessage', {
+          messageId: 'signupFailed',
+          type: 'warning',
+          message: 'Username already exists!'
+        })
+      } else if (error.response.status === 422) {
+        commit('addMessages', error.response.data)
+      } else {
+        commit('addMessage', {
+          messageId: 'loginError',
+          type: 'danger',
+          message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
+        })
+      }
+    })
   },
 
   login({ commit, dispatch }, authData) {
@@ -182,36 +201,51 @@ const actions = {
     removeAuthDataFromLocalStorage(localStorage)
     delete axios.defaults.headers.common["Authorization"]
   },
-
+  logItOut({ commit, dispatch }, refreshToken) {
+    axios.delete('/logout', {
+      params: { refreshToken: refreshToken }
+    })
+    .then(res => {
+      dispatch('getUserSessions')
+    })
+    .catch(error => {
+      commit('addMessage', {
+        messageId: 'logItOutError',
+        type: 'danger',
+        category: 'error',
+        message: 'Error while trying to log a user session out: ' + error
+      })
+    })
+  },
   logout({ commit, dispatch }) {
     axios.delete('/logout', {
       params: { refreshToken: state.user.refreshToken }
     })
-      .then(res => {
-        dispatch('deregisterLoggedUser')
-        commit('clearAllMessages')
+    .then(res => {
+      dispatch('deregisterLoggedUser')
+      commit('clearAllMessages')
+      commit('addMessage', {
+        messageId: 'loggedOut',
+        type: 'warning',
+        message: 'You\'ve been logged out.'
+      })
+      router.replace('/signin')
+    })
+    .catch(error => {
+      if (!error.response) {
         commit('addMessage', {
-          messageId: 'loggedOut',
-          type: 'warning',
-          message: 'You\'ve been logged out.'
+          messageId: 'logoutError',
+          type: 'danger',
+          message: 'Login error: ' + error
         })
-        router.replace('/signin')
-      })
-      .catch(error => {
-        if (!error.response) {
-          commit('addMessage', {
-            messageId: 'logoutError',
-            type: 'danger',
-            message: 'Login error: ' + error
-          })
-        } else {
-          commit('addMessage', {
-            messageId: 'logoutError',
-            type: 'danger',
-            message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
-          })
-        }
-      })
+      } else {
+        commit('addMessage', {
+          messageId: 'logoutError',
+          type: 'danger',
+          message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
+        })
+      }
+    })
   }
 }
 

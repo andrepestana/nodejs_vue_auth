@@ -4,6 +4,8 @@ import axios from 'axios'
 
 import router from './router'
 import store from './store'
+import formatDate from './filters/formatDate'
+import yesOrNo from './filters/yesOrNo'
 
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 Vue.use(BootstrapVue)

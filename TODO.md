@@ -1,6 +1,5 @@
 #TODO
 
-- fix signup validation
 - create user roles
 - create page for only admin user to see all user "sessions"
 - create posts component for any authenticated user to see

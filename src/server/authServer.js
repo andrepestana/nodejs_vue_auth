@@ -35,6 +35,8 @@ function isRefreshTokenActive(token) {
     throw 'Not implemented yet for non fake persistent data'
   }
 }
+
+
 function revokeRefreshToken(token) {
   if (process.env.FAKE_PERSISTENT_DATA) {
     let filterResult = logonDataArray.filter(l => l.refreshToken === token)
@@ -151,7 +153,8 @@ function authenticate(req, res) {
       refreshToken,
       clientInfo,
       refreshTokenCreatedDate,
-      refreshTokenExpirationDate
+      refreshTokenExpirationDate,
+      remoteAddress: getRemoteAddress(req)
     })
 
     res.json({
@@ -164,6 +167,15 @@ function authenticate(req, res) {
   } else {
     return res.sendStatus(401)
   }
+}
+function getRemoteAddress(req) {
+    
+  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  var host = req.get('host')
+  
+  if(ip === "127.0.0.1" || ip === "::ffff:127.0.0.1" || ip === "::1" || host.indexOf("localhost") !== -1)
+    return "localhost"
+  else return ip
 }
 
 function getClientInfo(request) {
@@ -195,6 +207,26 @@ function checkUsernameAndPassword(authData) {
     throw 'Not implemented yet for non fake persistent data'
   }
 }
+
+app.get('/userSessions', (req, res) => {
+  let accessToken = null
+  let authorizationHeader = req.headers['authorization']
+  if(!authorizationHeader) res.sendStatus(403)
+  else if(req.headers['authorization'].split(' ').length === 2) {
+    accessToken = req.headers['authorization'].split(' ')[1]
+  }
+  jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403)
+    else {
+      if (process.env.FAKE_PERSISTENT_DATA) {
+        let filterResult = logonDataArray.filter(l => l.username === user.username)
+        if(filterResult) res.json(filterResult)
+      } else {
+        throw 'Not implemented yet for non fake persistent data'
+      } 
+    }
+  }) 
+})
 
 
 

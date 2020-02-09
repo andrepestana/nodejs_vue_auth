@@ -12,6 +12,9 @@
           <router-link to="/signin">Sign In</router-link>
         </li>
         <li v-if="auth">
+          <router-link to="/userSessions">User Sessions</router-link>
+        </li>
+        <li v-if="auth">
           <router-link to="/dashboard">Dashboard</router-link>
         </li>
         <li v-if="auth">
@@ -44,8 +47,9 @@
     flex-flow: row;
     justify-content: space-between;
     align-items: center;
-    background-color: #521751;
+    background-color: #007bff;
     padding: 0 20px;
+    font-weight: bold
   }
 
   .logo {
@@ -84,7 +88,7 @@
   li a:hover,
   li a:active,
   li a.router-link-active {
-    color: #fa923f;
+    color: #020064;
   }
 
   .logout {
