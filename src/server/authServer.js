@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const encryptUtil = require('./encryptUtil')
 const userValidation = require('./validation/userValidation')
 const ExtendedArray = require('./util/ExtendedArray.js')
+const nodemailer = require('nodemailer');
 
 app.use(express.json())
 
@@ -106,6 +107,9 @@ app.post('/signup', (req, res) => {
 
   if (!retrieveUserByUsername(user.username)) {
     saveUser(user);
+    if(process.env.SEND_MAIL_ON_SIGNUP) {
+      sendConfirmationMail(user)
+    }
   } else {
     return res.sendStatus(409) //duplicate resource
   }
@@ -228,6 +232,29 @@ app.get('/userSessions', (req, res) => {
   }) 
 })
 
+function sendConfirmationMail(user) {
+  const transport = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  })
 
+  const mailOptions = {
+    from: process.env.SMTP_FROM,
+    to: user.username,
+    subject: 'User registration confirmation',
+    html: `<p>User registration confirmation for <strong>${user.username}</strong></p>`
+  }
 
+  transport.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  })
+}
 app.listen(4000)
