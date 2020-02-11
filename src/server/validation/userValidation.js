@@ -103,7 +103,7 @@ function required(input, messageForId, messageId, fieldName) {
             messageId,
             message: `${fieldName} is required`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -114,7 +114,7 @@ function stringMin(input, messageForId, messageId, fieldName, min) {
             messageId,
             message: `${fieldName} should have at least ${min} characters`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -125,7 +125,7 @@ function numberMin(input, messageForId, messageId, fieldName, min) {
             messageId,
             message: `The minimum allowed ${fieldName} is ${min}`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -136,7 +136,7 @@ function isEmail(input, messageForId, messageId, fieldName) {
             messageId,
             message: `${fieldName} must be a valid email`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -147,7 +147,7 @@ function areEqual(input, messageForId, messageId, fieldName, input2, fieldName2)
             messageId,
             message: `${fieldName} is different from ${fieldName2}`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -158,7 +158,7 @@ function newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageI
             messageId,
             message: `${fieldName} must be different from previous password`,
             type: 'danger',
-            category: 'validation'
+            category: 'validationMessage'
         }
     }
 }
@@ -171,7 +171,7 @@ function mustContainOneOf(input, messageForId, messageId, fieldName, chars, char
                 messageId,
                 message: `${fieldName} must contain a ${charsName}`,
                 type: 'danger',
-                category: 'validation'
+                category: 'validationMessage'
             }
         }
     }

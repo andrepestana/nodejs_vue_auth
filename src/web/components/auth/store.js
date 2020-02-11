@@ -46,7 +46,7 @@ const actions = {
     .catch(error => {
       commit('addMessage', {
         messageId: 'errorWhileGettingUserSessions',
-        type: 'danger',
+        category: 'errorMessage',
         message: 'Error while getting user sessions: ' + error.response.status + ': ' + error.response.statusText
       })
     })
@@ -68,7 +68,7 @@ const actions = {
       } else {
         commit('addMessage', {
           messageId: 'errorWhileChangingPassword',
-          type: 'danger',
+          category: 'errorMessage',
           message: 'Error while changing password: ' + error.response.status + ': ' + error.response.statusText
         })
       }
@@ -89,7 +89,7 @@ const actions = {
           dispatch('registerLoggedUser', res)
         })
         .catch(error => {
-          dispatch('logout', error)
+          dispatch('logout', refreshToken)
         })
       }
     }, expirationTimeInMilli - process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)
@@ -106,13 +106,13 @@ const actions = {
       if (!error.response) {
         commit('addMessage', {
           messageId: 'loginError',
-          type: 'danger',
+          category: 'errorMessage',
           message: 'Login error: ' + error
         })
       } else if (error.response.status === 409) {
         commit('addMessage', {
           messageId: 'signupFailed',
-          type: 'warning',
+          category: 'warningMessage',
           message: 'Username already exists!'
         })
       } else if (error.response.status === 422) {
@@ -120,7 +120,7 @@ const actions = {
       } else {
         commit('addMessage', {
           messageId: 'loginError',
-          type: 'danger',
+          category: 'errorMessage',
           message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
         })
       }
@@ -142,13 +142,13 @@ const actions = {
         if (!error.response) {
           commit('addMessage', {
             messageId: 'loginError',
-            type: 'danger',
+            category: 'errorMessage',
             message: 'Login error: ' + error
           })
         } else if(error.response.status === 401) {
           commit('addMessage', {
             messageId: 'loginFailed',
-            category: 'validation',
+            category: 'validationMessage',
             message: 'Username or Password invalid'
           })
         } else if(error.response.status === 422) {
@@ -156,7 +156,7 @@ const actions = {
         } else {
           commit('addMessage', {
             messageId: 'loginError',
-            type: 'danger',
+            category: 'errorMessage',
             message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
           })
         }
@@ -207,7 +207,7 @@ const actions = {
           router.push('/dashboard')
         })
         .catch(error => {
-          dispatch('logout', error)
+          dispatch('logout', refreshToken)
         })
       return
     }
@@ -242,22 +242,21 @@ const actions = {
     .catch(error => {
       commit('addMessage', {
         messageId: 'logItOutError',
-        type: 'danger',
-        category: 'error',
+        category: 'errorMessage',
         message: 'Error while trying to log a user session out: ' + error
       })
     })
   },
-  logout({ commit, dispatch }) {
+  logout({ commit, dispatch }, refreshToken) {
     axios.delete('/logout', {
-      params: { refreshToken: state.user.refreshToken }
+      params: { refreshToken }
     })
     .then(res => {
       dispatch('deregisterLoggedUser')
       commit('clearAllMessages')
       commit('addMessage', {
         messageId: 'loggedOut',
-        type: 'warning',
+        category: 'warningMessage',
         message: 'You\'ve been logged out.'
       })
       router.replace('/signin')
@@ -266,13 +265,13 @@ const actions = {
       if (!error.response) {
         commit('addMessage', {
           messageId: 'logoutError',
-          type: 'danger',
+          category: 'errorMessage',
           message: 'Login error: ' + error
         })
       } else {
         commit('addMessage', {
           messageId: 'logoutError',
-          type: 'danger',
+          category: 'errorMessage',
           message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
         })
       }

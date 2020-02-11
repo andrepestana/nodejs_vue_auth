@@ -8,9 +8,16 @@
                 </li>
             </ul>
         </div>
-        <div class="alert alert-warning" role="alert" v-if="messages.length">
+        <div class="alert alert-warning" role="alert" v-if="otherMessages.length">
             <ul class="list-unstyled">
-                <li v-for="(message,index) in messages" :key="index">
+                <li v-for="(message,index) in otherMessages" :key="index">
+                    {{ message.message }}
+                </li>
+            </ul>
+        </div>
+        <div class="alert alert-success" role="alert" v-if="successMessages.length">
+            <ul class="list-unstyled">
+                <li v-for="(message,index) in successMessages" :key="index">
                     {{ message.message }}
                 </li>
             </ul>
@@ -21,12 +28,15 @@
 <script>
 export default {
     computed: {
-      messages() {
-        return this.$store.getters.messages.filter((m) => m.category !== 'validation')
-      },
-      validationMessages() {
-        return this.$store.getters.messages.filter((m) => m.category === 'validation')
-      }
+        otherMessages() {
+            return this.$store.getters.messages.filter((m) => m.category !== 'validationMessage' && m.category !== 'successMessage')
+        },
+        validationMessages() {
+            return this.$store.getters.messages.filter((m) => m.category === 'validationMessage')
+        },
+        successMessages() {
+            return this.$store.getters.messages.filter((m) => m.category === 'successMessage')
+        }
     }
 }
 </script>
