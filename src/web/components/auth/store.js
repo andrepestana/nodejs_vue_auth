@@ -3,7 +3,8 @@ import router from '../../router'
 
 const state = {
   user: null,
-  userSessions: []
+  userSessions: [],
+  changePasswordSuccess: false
 }
 
 const getters = {
@@ -15,6 +16,9 @@ const getters = {
   },
   userSessions(state) {
     return state.userSessions
+  },
+  changePasswordSuccess(state) {
+    return state.changePasswordSuccess
   }
 }
 
@@ -27,6 +31,9 @@ const mutations = {
   },
   storeUserSessions(state, userSessions) {
     state.userSessions = userSessions
+  },
+  setChangePasswordSuccess(state, bool) {
+    state.changePasswordSuccess = bool
   }
 }
 
@@ -53,6 +60,7 @@ const actions = {
         category: 'successMessage',
         message: 'Your password was successfully changed.'
       })
+      commit('setChangePasswordSuccess', true) 
     })
     .catch(error => {
       if (error.response.status === 422) {

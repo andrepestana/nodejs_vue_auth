@@ -8,7 +8,7 @@ function getValidationsForPasswordDefinition( password, messageForId, messageId,
     validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'A-Z', 'uppercase character'))
     validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'a-z', 'lowercase character'))
     validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, '0-9', 'number'))
-    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, regExpEscape('"\'-[]{}()*+!<=:?./\\^$|#,'), 'special characters like "\'-[]{}()*+!<=:?./\\^$|#,'))
+    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, regExpEscape('"\'-[]{}()*+!<=:?./\\^$|#@,'), 'special characters like "\'-[]{}()*+!<=:?./\\^$|#@,'))
     return validationMessages
 }
 

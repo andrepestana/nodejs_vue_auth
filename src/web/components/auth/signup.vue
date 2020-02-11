@@ -81,12 +81,6 @@
           terms: this.terms
         }
         this.$store.dispatch('signup', formData)
-      },
-      clearAllMessages() {
-        this.$store.commit('clearAllMessages')
-      },
-      clearMessageById(e){
-        this.$store.commit('clearMessagesById', e.target.id)
       }
     },
     created() {

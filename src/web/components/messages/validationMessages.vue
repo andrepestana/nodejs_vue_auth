@@ -18,6 +18,14 @@ export default {
         messages () {
             return this.$store.getters.messages.filter(m => m.messageForId === this.messageForId);
         } 
+    },
+    methods: {
+        clearAllMessages() {
+            this.$store.commit('clearAllMessages')
+        },
+        clearMessageById(e){
+            this.$store.commit('clearMessagesById', e.target.id)
+        }
     }
 }
 </script>

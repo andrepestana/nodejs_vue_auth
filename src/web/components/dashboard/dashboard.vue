@@ -1,5 +1,6 @@
 <template>
   <div id="dashboard">
+    
     <h1>Dashboard</h1>
     <p v-if="username">Logged as {{ username }}</p>
     
