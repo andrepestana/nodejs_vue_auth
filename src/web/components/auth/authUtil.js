@@ -1,5 +1,7 @@
+import store from '../../store' //main store
+
 const authUtil = {
-    authRouteAccess(store, next) {
+    authRouteAccess(next) {
         if (store.state.auth && 
             store.state.auth.user && 
             store.state.auth.user.accessToken) {

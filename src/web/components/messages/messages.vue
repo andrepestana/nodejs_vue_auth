@@ -29,12 +29,21 @@
 export default {
     computed: {
         otherMessages() {
+            if(!this.$store.getters.messages) {
+                return []
+            }
             return this.$store.getters.messages.filter((m) => m.category !== 'validationMessage' && m.category !== 'successMessage')
         },
         validationMessages() {
+            if(!this.$store.getters.messages) {
+                return []
+            }
             return this.$store.getters.messages.filter((m) => m.category === 'validationMessage')
         },
         successMessages() {
+            if(!this.$store.getters.messages) {
+                return []
+            }
             return this.$store.getters.messages.filter((m) => m.category === 'successMessage')
         }
     }

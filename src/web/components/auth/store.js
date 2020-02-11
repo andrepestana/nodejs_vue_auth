@@ -276,6 +276,30 @@ const actions = {
         })
       }
     })
+  },
+  confirmEmail({ commit, dispatch }, emailConfirmationToken) {
+    axios.get('/confirmEmail', {
+      params: { emailConfirmationToken }
+    })
+    .then(res => {
+      commit('clearAllMessages')
+      commit('addMessage', res.body)
+    })
+    .catch(error => {
+      if (!error.response) {
+        commit('addMessage', {
+          messageId: 'confirmEmailError',
+          category: 'errorMessage',
+          message: 'Confirm email error: ' + error
+        })
+      } else {
+        commit('addMessage', {
+          messageId: 'confirmEmailError',
+          category: 'errorMessage',
+          message: 'Confirm email error: ' + error.response.status + ': ' + error.response.statusText
+        })
+      }
+    }) 
   }
 }
 

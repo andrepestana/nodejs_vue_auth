@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import store from './store'
 import WelcomePage from './components/welcome/welcome.vue'
 import DashboardPage from './components/dashboard/dashboard.vue'
 import authRoutes from './components/auth/router'
@@ -14,7 +13,7 @@ let routes = [
     path: '/dashboard',
     component: DashboardPage,
     beforeEnter (to, from, next) {
-      authUtil.authRouteAccess(store, next)
+      authUtil.authRouteAccess(next)
     }
   }
 ]

@@ -40,15 +40,17 @@ function isRefreshTokenActive(token) {
 }
 
 function isEmailConfirmationTokenPending(emailConfirmationToken) {
-  
-  const username = jwt.decode(emailConfirmationToken).username
-
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    let filterResult = users.filter(l => l.username === username)
-    if(filterResult.length) return filterResult[0].confirmedEmail === false
-    else return false
+  const tokenUser = jwt.decode(emailConfirmationToken)
+  if(tokenUser && tokenUser.username) {
+    if (process.env.FAKE_PERSISTENT_DATA) {
+      let filterResult = users.filter(l => l.username === tokenUser.username)
+      if(filterResult.length) return filterResult[0].confirmedEmail === false
+      else return false
+    } else {
+      throw 'Not implemented yet for non fake persistent data'
+    }
   } else {
-    throw 'Not implemented yet for non fake persistent data'
+    return false
   }
 }
 
@@ -158,7 +160,7 @@ app.post('/signup', (req, res) => {
 
   if (!retrieveUserByUsername(user.username)) {
     saveUser(user);
-    if(process.env.SEND_MAIL_ON_SIGNUP === true) {
+    if(process.env.SEND_MAIL_ON_SIGNUP === 'true') {
       sendConfirmationMail(user)
     }
   } else {
@@ -356,7 +358,7 @@ function sendConfirmationMail(user) {
 }
 
 function generateConfirmationEmailTokenLink(user) {
-  return process.env.VUE_APP_AUTH_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
+  return process.env.VUE_APP_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
 }
 
 
