@@ -1,21 +1,25 @@
 <template>
   <div id="signin">
-    <messages :showAlert="true"></messages>
+    <messages></messages>
     <div class="signin-form">
       <form @submit.prevent="onSubmit">
         <div class="input">
-          <label for="email">Mail</label>
+          <label for="username">Mail</label>
           <input
-                  type="email"
-                  id="email"
-                  v-model="email">
+                  type="username"
+                  id="username"
+                  v-model="username"
+                  @focus="clearMessageById($event)">
+          <validation-messages messageForId="username"></validation-messages>
         </div>
         <div class="input">
           <label for="password">Password</label>
           <input
                   type="password"
                   id="password"
-                  v-model="password">
+                  v-model="password"
+                  @focus="clearMessageById($event)">
+          <validation-messages messageForId="password"></validation-messages>
         </div>
         <div class="submit">
           <button type="submit">Submit</button>
@@ -27,20 +31,21 @@
 
 <script>
   import messages from '../messages/messages.vue'
+  import validationMessages from '../messages/validationMessages.vue'
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
   
   export default {
     mixins: [removeMessagesWhenLeaving],
     data () {
       return {
-        email: '',
+        username: '',
         password: ''     
       }
     },
     methods: {
       onSubmit () {
         const formData = {
-          username: this.email,
+          username: this.username,
           password: this.password,
         }
         this.$store.dispatch('login', formData)
@@ -53,7 +58,8 @@
     },
     
     components: {
-        messages
+        messages,
+        validationMessages
     }
   }
 </script>

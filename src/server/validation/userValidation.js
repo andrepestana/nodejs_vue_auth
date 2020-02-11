@@ -24,6 +24,16 @@ module.exports = {
 
         return validationMessages
     },
+    validateUsernameForLogin: function (username) {
+        const messageForId = "username"
+        const messageId = "usernameValidation"
+        const fieldName = "Username"
+        let validationMessages = new ExtendedArray()
+
+        validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
+        
+        return validationMessages
+    },
     validatePassword: function (password) {
         const messageForId = "password"
         const messageId = "passwordValidation"

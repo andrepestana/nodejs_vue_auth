@@ -58,8 +58,8 @@
 <script>
   import messages from '../messages/messages.vue'
   import validationMessages from '../messages/validationMessages.vue'
-
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
+
   export default {
     mixins: [removeMessagesWhenLeaving],
     data () {

@@ -145,12 +145,14 @@ const actions = {
             type: 'danger',
             message: 'Login error: ' + error
           })
-        } else if (error.response.status === 401) {
+        } else if(error.response.status === 401) {
           commit('addMessage', {
             messageId: 'loginFailed',
-            type: 'warning',
-            message: 'Username or Password invalid!'
+            category: 'validation',
+            message: 'Username or Password invalid'
           })
+        } else if(error.response.status === 422) {
+          commit('addMessages', error.response.data)
         } else {
           commit('addMessage', {
             messageId: 'loginError',

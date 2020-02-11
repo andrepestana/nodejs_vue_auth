@@ -177,6 +177,15 @@ app.post('/changePassword', (req, res) => {
 app.post('/login', authenticate)
 
 function authenticate(req, res) {
+  let validationMessages = new ExtendedArray()
+
+  validationMessages.pushArray(userValidation.validateUsernameForLogin(req.body.username))
+  validationMessages.pushArray(userValidation.validatePasswordForLogin(req.body.password))
+  // return 422 in case of invalid
+  if(validationMessages.length) {
+    return res.status(422).send(validationMessages.filter((vm) => vm != undefined))
+  }
+
   const authData = req.body
   if (checkUsernameAndPassword(authData)) {
     const username = req.body.username
