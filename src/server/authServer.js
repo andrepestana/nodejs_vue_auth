@@ -7,6 +7,8 @@ const userValidation = require('./validation/userValidation')
 const ExtendedArray = require('./util/ExtendedArray.js')
 const nodemailer = require('nodemailer');
 
+const emailConfirmationEndPoint = '/confirmEmail'
+
 app.use(express.json())
 
 if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
@@ -37,6 +39,18 @@ function isRefreshTokenActive(token) {
   }
 }
 
+function isEmailConfirmationTokenPending(emailConfirmationToken) {
+  
+  const username = jwt.decode(emailConfirmationToken).username
+
+  if (process.env.FAKE_PERSISTENT_DATA) {
+    let filterResult = users.filter(l => l.username === username)
+    if(filterResult.length) return filterResult[0].confirmedEmail === false
+    else return false
+  } else {
+    throw 'Not implemented yet for non fake persistent data'
+  }
+}
 
 function revokeRefreshToken(token) {
   if (process.env.FAKE_PERSISTENT_DATA) {
@@ -56,8 +70,11 @@ function saveLogonInformation(logonData) {
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION })
 }
-function generateRefreshToken(user, process) {
+function generateRefreshToken(user) {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION })
+}
+function generateEmailConfirmationToken(user) {
+  return jwt.sign(user, process.env.EMAIL_CONFIRMATION_TOKEN_SECRET, { expiresIn: process.env.EMAIL_CONFIRMATION_TOKEN_EXPIRATION })
 }
 
 app.post('/token', (req, res) => {
@@ -83,6 +100,38 @@ app.post('/token', (req, res) => {
   })
 })
 
+app.get(emailConfirmationEndPoint, (req, res) => {
+  const emailConfirmationToken = req.query.emailConfirmationToken
+
+  const emailConfirmationValidationErrorMessage = [{
+    messageId: 'emailConfirmationError',
+    message: `The link to confirm email is not valid`,
+    category: 'validationMessage'
+  }]
+
+  if (emailConfirmationToken == null || !isEmailConfirmationTokenPending(emailConfirmationToken)) {
+    return res.status(401).send(emailConfirmationValidationErrorMessage) 
+  }
+
+  jwt.verify(emailConfirmationToken, process.env.EMAIL_CONFIRMATION_TOKEN_SECRET, (err, user) => {
+    if (err) return res.status(403).send(emailConfirmationValidationErrorMessage) 
+    
+    let username = jwt.decode(emailConfirmationToken).username
+    let updateUser = retrieveUserByUsername(username)
+    updateUser.confirmedEmail = true
+    saveUser(updateUser)
+    res.json([
+      {
+        messageId: 'emailConfirmationSuccess',
+        message: `The email address has been confirmed for ${ username }`,
+        category: 'successMessage'
+      }
+    ])
+
+  })
+})
+
+
 app.post('/signup', (req, res) => {
   let validationMessages = new ExtendedArray()
  
@@ -102,7 +151,9 @@ app.post('/signup', (req, res) => {
   const user = {
     username: req.body.username,
     password,
-    age: req.body.age
+    age: req.body.age,
+    confirmedEmail: false,
+    emailConfirmationToken: generateEmailConfirmationToken({ 'username': req.body.username })
   }
 
   if (!retrieveUserByUsername(user.username)) {
@@ -292,7 +343,7 @@ function sendConfirmationMail(user) {
     from: process.env.SMTP_FROM,
     to: user.username,
     subject: 'User registration confirmation',
-    html: `<p>User registration confirmation for <strong>${user.username}</strong></p>`
+    html: `<p>User registration confirmation for <strong>${user.username}</strong></p><p>${generateConfirmationEmailToken(user)}`
   }
 
   transport.sendMail(mailOptions, function(error, info){
@@ -303,4 +354,10 @@ function sendConfirmationMail(user) {
     }
   })
 }
+
+function generateConfirmationEmailToken(user) {
+  return process.env.VUE_APP_AUTH_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
+}
+
+
 app.listen(4000)
