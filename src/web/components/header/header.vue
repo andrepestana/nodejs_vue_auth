@@ -14,6 +14,9 @@
         <li v-if="auth">
           <router-link to="/userSessions">User Sessions</router-link>
         </li>
+       <li v-if="auth">
+          <router-link to="/changePassword">Change Password</router-link>
+        </li>
         <li v-if="auth">
           <router-link to="/dashboard">Dashboard</router-link>
         </li>

@@ -1,6 +1,6 @@
 <template>
   <div id="signup">
-    <messages :showAlert="true"></messages>
+    <messages></messages>
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
         <div class="input">

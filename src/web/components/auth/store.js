@@ -44,13 +44,34 @@ const actions = {
       })
     })
   },
+  changePassword({commit}, authData) {
+    commit('clearAllMessages')
+    axios.post('/changePassword', authData)
+    .then(res => {
+      commit('addMessage', {
+        messageId: 'successOnChangingPassword',
+        category: 'successMessage',
+        message: 'Your password was successfully changed.'
+      })
+    })
+    .catch(error => {
+      if (error.response.status === 422) {
+        commit('addMessages', error.response.data)
+      } else {
+        commit('addMessage', {
+          messageId: 'errorWhileChangingPassword',
+          type: 'danger',
+          message: 'Error while changing password: ' + error.response.status + ': ' + error.response.statusText
+        })
+      }
+    })
+  },
   setLogoutTimer({ dispatch }, { refreshToken, expirationTimeInMilli }) {
     setTimeout(() => {
       dispatch('logout', refreshToken)
     }, expirationTimeInMilli)
   },
   setRefreshTokenTimer({ dispatch }, expirationTimeInMilli) {
-
     setTimeout(() => {
       if (state.user) {
         axios.post('/token', {

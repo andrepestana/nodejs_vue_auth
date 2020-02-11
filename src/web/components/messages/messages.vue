@@ -20,9 +20,6 @@
 
 <script>
 export default {
-    props: {
-        showAlert: Boolean
-    },
     computed: {
       messages() {
         return this.$store.getters.messages.filter((m) => m.category !== 'validation')

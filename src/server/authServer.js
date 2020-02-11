@@ -118,7 +118,12 @@ app.post('/signup', (req, res) => {
 
 function saveUser(user) {
   if (process.env.FAKE_PERSISTENT_DATA) {
-    users.push(user)
+    let foundIndex = users.findIndex(u => u.username == user.username);
+    if(foundIndex === -1)
+      users.push(user)
+    else {
+      users[foundIndex] = user;
+    }
   } else {
     throw 'Not implemented yet for non fake persistent data'
   }
@@ -137,11 +142,42 @@ app.delete('/logout', (req, res) => {
   res.sendStatus(204)
 })
 
+app.post('/changePassword', (req, res) => {
+  let accessToken = null
+  let authorizationHeader = req.headers['authorization']
+  if(!authorizationHeader) res.sendStatus(403)
+  else if(req.headers['authorization'].split(' ').length === 2) {
+    accessToken = req.headers['authorization'].split(' ')[1]
+  }
+  
+  const authData = req.body
+
+  let validationMessages = new ExtendedArray()
+  validationMessages.pushArray(userValidation.validatePasswordForLogin(req.body.password))
+  validationMessages.pushArray(userValidation.validateNewPassword(req.body.newPassword, req.body.password))
+  validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.newPassword, req.body.confirmPassword))
+  // return 422 in case of invalid
+  if(validationMessages.length) {
+    return res.status(422).send(validationMessages.filter((vm) => vm != undefined))
+  }
+
+  const username = jwt.decode(accessToken).username
+  authData.username = username
+  if (checkUsernameAndPassword(authData)) {
+    const password = encryptUtil.cryptPassword(req.body.newPassword)
+    const user = retrieveUserByUsername(username)
+    user.password = password
+    saveUser(user);
+    res.sendStatus(200)
+  } else {
+    return res.sendStatus(401)
+  }
+})
+
 app.post('/login', authenticate)
 
 function authenticate(req, res) {
   const authData = req.body
-
   if (checkUsernameAndPassword(authData)) {
     const username = req.body.username
     const user = { 'username': username }
@@ -172,6 +208,7 @@ function authenticate(req, res) {
     return res.sendStatus(401)
   }
 }
+
 function getRemoteAddress(req) {
     
   var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
