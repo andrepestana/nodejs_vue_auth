@@ -1,7 +1,6 @@
 <template>
     <div>
         <messages></messages>
-        {{ emailConfirmationToken}}
     </div>
 </template>
 <script>

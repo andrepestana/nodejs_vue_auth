@@ -278,12 +278,13 @@ const actions = {
     })
   },
   confirmEmail({ commit, dispatch }, emailConfirmationToken) {
+    commit('clearAllMessages')
     axios.get('/confirmEmail', {
       params: { emailConfirmationToken }
     })
     .then(res => {
-      commit('clearAllMessages')
-      commit('addMessage', res.body)
+      
+      commit('addMessages', res.data)
     })
     .catch(error => {
       if (!error.response) {

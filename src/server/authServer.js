@@ -107,8 +107,8 @@ app.get(emailConfirmationEndPoint, (req, res) => {
 
   const emailConfirmationValidationErrorMessage = [{
     messageId: 'emailConfirmationError',
-    message: `The link to confirm email is not valid`,
-    category: 'validationMessage'
+    category: 'validationMessage',
+    message: `The link to confirm email is not valid`
   }]
 
   if (emailConfirmationToken == null || !isEmailConfirmationTokenPending(emailConfirmationToken)) {
