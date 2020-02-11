@@ -22,7 +22,7 @@
           <validation-messages messageForId="password"></validation-messages>
         </div>
         <div class="submit">
-          <button type="submit">Submit</button>
+          <button type="submit" class="btn btn-dark">Submit</button>
         </div>
       </form>
     </div>
@@ -101,26 +101,4 @@
     background-color: #eee;
   }
 
-  .submit button {
-    border: 1px solid #521751;
-    color: #521751;
-    padding: 10px 20px;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .submit button:hover,
-  .submit button:active {
-    background-color: #521751;
-    color: white;
-  }
-
-  .submit button[disabled],
-  .submit button[disabled]:hover,
-  .submit button[disabled]:active {
-    border: 1px solid #ccc;
-    background-color: transparent;
-    color: #ccc;
-    cursor: not-allowed;
-  }
 </style>
