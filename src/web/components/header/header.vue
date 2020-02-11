@@ -49,7 +49,7 @@
     },
     methods: {
       onLogout() {
-        this.$store.dispatch('logout')
+        this.$store.dispatch('logout', this.$store.getters.user.refreshToken)
       }
     }
   }
