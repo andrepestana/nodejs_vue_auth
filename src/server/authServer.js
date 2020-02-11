@@ -158,7 +158,7 @@ app.post('/signup', (req, res) => {
 
   if (!retrieveUserByUsername(user.username)) {
     saveUser(user);
-    if(process.env.SEND_MAIL_ON_SIGNUP) {
+    if(process.env.SEND_MAIL_ON_SIGNUP === true) {
       sendConfirmationMail(user)
     }
   } else {
@@ -343,7 +343,7 @@ function sendConfirmationMail(user) {
     from: process.env.SMTP_FROM,
     to: user.username,
     subject: 'User registration confirmation',
-    html: `<p>User registration confirmation for <strong>${user.username}</strong></p><p>${generateConfirmationEmailToken(user)}`
+    html: `<p>User registration confirmation for <strong>${user.username}</strong></p><p><a href="${generateConfirmationEmailTokenLink(user)}">Click here to confirm your email</a></p>`
   }
 
   transport.sendMail(mailOptions, function(error, info){
@@ -355,7 +355,7 @@ function sendConfirmationMail(user) {
   })
 }
 
-function generateConfirmationEmailToken(user) {
+function generateConfirmationEmailTokenLink(user) {
   return process.env.VUE_APP_AUTH_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
 }
 
