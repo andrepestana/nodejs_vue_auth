@@ -1,4 +1,5 @@
 const ExtendedArray = require('../util/ExtendedArray.js')
+const userDao = require('../dao/userDao')
 
 function getValidationsForPasswordDefinition( password, messageForId, messageId, fieldName) {
     const minLength = 6
@@ -22,6 +23,22 @@ module.exports = {
         validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
         validationMessages.pushDefined(isEmail(username, messageForId, messageId, fieldName))
 
+        return validationMessages
+    },
+    validateUsernameExists(username) {
+        const messageForId = "username"
+        const messageId = "usernameValidation"
+        let validationMessages = new ExtendedArray()
+
+        const persistedUser = userDao.retrieveUserByUsername(username)
+        if(!persistedUser || !persistedUser.username) {
+            validationMessages.push({
+                messageForId,
+                messageId,
+                message: `Username not registered`,
+                category: 'validationMessage'
+            })
+        }
         return validationMessages
     },
     validateUsernameForLogin: function (username) {
@@ -102,7 +119,6 @@ function required(input, messageForId, messageId, fieldName) {
             messageForId,
             messageId,
             message: `${fieldName} is required`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -113,7 +129,6 @@ function stringMin(input, messageForId, messageId, fieldName, min) {
             messageForId,
             messageId,
             message: `${fieldName} should have at least ${min} characters`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -124,7 +139,6 @@ function numberMin(input, messageForId, messageId, fieldName, min) {
             messageForId,
             messageId,
             message: `The minimum allowed ${fieldName} is ${min}`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -135,7 +149,6 @@ function isEmail(input, messageForId, messageId, fieldName) {
             messageForId,
             messageId,
             message: `${fieldName} must be a valid email`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -146,7 +159,6 @@ function areEqual(input, messageForId, messageId, fieldName, input2, fieldName2)
             messageForId,
             messageId,
             message: `${fieldName} is different from ${fieldName2}`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -157,7 +169,6 @@ function newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageI
             messageForId,
             messageId,
             message: `${fieldName} must be different from previous password`,
-            type: 'danger',
             category: 'validationMessage'
         }
     }
@@ -170,7 +181,6 @@ function mustContainOneOf(input, messageForId, messageId, fieldName, chars, char
                 messageForId,
                 messageId,
                 message: `${fieldName} must contain a ${charsName}`,
-                type: 'danger',
                 category: 'validationMessage'
             }
         }

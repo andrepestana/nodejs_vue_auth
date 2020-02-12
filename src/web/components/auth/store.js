@@ -89,7 +89,7 @@ const actions = {
           dispatch('registerLoggedUser', res)
         })
         .catch(error => {
-          dispatch('logout', refreshToken)
+          dispatch('logout', state.user.refreshToken)
         })
       }
     }, expirationTimeInMilli - process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI)

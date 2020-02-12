@@ -23,3 +23,12 @@ Content-Type: application/json
 {
   "username": "Jim"
 }
+
+###
+
+POST http://localhost:4000/sendEmailToRetrievePassword
+Content-Type: application/json
+
+{
+  "username": "a"
+}

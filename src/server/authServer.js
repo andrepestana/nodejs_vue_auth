@@ -2,13 +2,13 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
-const encryptUtil = require('./encryptUtil')
+const encryptUtil = require('./util/encryptUtil')
 const userValidation = require('./validation/userValidation')
 const ExtendedArray = require('./util/ExtendedArray.js')
-const nodemailer = require('nodemailer');
-
-const emailConfirmationEndPoint = '/confirmEmail'
-
+const userDao = require('./dao/userDao')
+const logonDataDao = require('./dao/logonDataDao')
+const requestUtil = require('./util/requestUtil')
+const mailSender = require('./mail/mailSender')
 app.use(express.json())
 
 if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
@@ -26,49 +26,29 @@ if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
   });
 }
 
-let logonDataArray = []
-let users = []
 
 function isRefreshTokenActive(token) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    let filterResult = logonDataArray.filter(l => l.refreshToken === token)
-    if(filterResult.length) return filterResult[0].revoked !== true
-    else return false
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }
+  let filterResult = logonDataDao.findLogonDataByRefreshToken(token)
+  if(filterResult.length) return filterResult[0].revoked !== true
+  else return false
 }
 
 function isEmailConfirmationTokenPending(emailConfirmationToken) {
   const tokenUser = jwt.decode(emailConfirmationToken)
   if(tokenUser && tokenUser.username) {
-    if (process.env.FAKE_PERSISTENT_DATA) {
-      let filterResult = users.filter(l => l.username === tokenUser.username)
-      if(filterResult.length) return filterResult[0].confirmedEmail === false
+      let user = userDao.retrieveUserByUsername(tokenUser.username)
+      if(user && user.username) return user.confirmedEmail === false
       else return false
-    } else {
-      throw 'Not implemented yet for non fake persistent data'
-    }
   } else {
     return false
   }
 }
 
 function revokeRefreshToken(token) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    let filterResult = logonDataArray.filter(l => l.refreshToken === token)
+    let filterResult = logonDataDao.findLogonDataByRefreshToken(token)
     if(filterResult.length) filterResult[0].revoked = true
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }  
 }
-function saveLogonInformation(logonData) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    return logonDataArray.push(logonData)
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }
-}
+
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION })
 }
@@ -104,7 +84,7 @@ app.post('/token', (req, res) => {
   })
 })
 
-app.get(emailConfirmationEndPoint, (req, res) => {
+app.get('/confirmEmail', (req, res) => {
   const emailConfirmationToken = req.query.emailConfirmationToken
 
   const emailConfirmationValidationErrorMessage = [{
@@ -121,9 +101,9 @@ app.get(emailConfirmationEndPoint, (req, res) => {
     if (err) return res.status(403).send(emailConfirmationValidationErrorMessage) 
     
     let username = jwt.decode(emailConfirmationToken).username
-    let updateUser = retrieveUserByUsername(username)
-    updateUser.confirmedEmail = true
-    saveUser(updateUser)
+    let persistedUser = userDao.retrieveUserByUsername(username)
+    persistedUser.confirmedEmail = true
+    userDao.updateUser(persistedUser)
     res.json([
       {
         messageId: 'emailConfirmationSuccess',
@@ -160,10 +140,10 @@ app.post('/signup', (req, res) => {
     emailConfirmationToken: generateEmailConfirmationToken({ 'username': req.body.username })
   }
 
-  if (!retrieveUserByUsername(user.username)) {
-    saveUser(user);
+  if (!userDao.retrieveUserByUsername(user.username)) {
+    userDao.saveUser(user);
     if(process.env.SEND_MAIL_ON_SIGNUP === 'true') {
-      sendConfirmationMail(user)
+      mailSender.sendConfirmationMail(user)
     }
   } else {
     return res.sendStatus(409) //duplicate resource
@@ -176,40 +156,17 @@ app.post('/sendEmailToRetrievePassword', (req, res) => {
  
   // validate form
   validationMessages.pushArray(userValidation.validateUsername(req.body.username))
+  if(!validationMessages.length)
+    validationMessages.pushArray(userValidation.validateUsernameExists(req.body.username))
   
-  //TODO validate user exists
-
   // return 422 in case of invalid
   if(validationMessages.length) {
     return res.status(422).send(validationMessages)
   }
-
   const retrievePasswordToken = generateRetrievePasswordToken({ 'username': req.body.username })
-  
-  sendRetrievePasswordMail(user, retrievePasswordToken)
+  mailSender.sendRetrievePasswordMail(user, retrievePasswordToken)
+  return res.sendStatus(200)
 })
-
-
-function saveUser(user) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    let foundIndex = users.findIndex(u => u.username == user.username);
-    if(foundIndex === -1)
-      users.push(user)
-    else {
-      users[foundIndex] = user;
-    }
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }
-}
-
-function retrieveUserByUsername(username) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    return users.find(u => u.username === username)
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }
-}
 
 app.delete('/logout', (req, res) => {
   revokeRefreshToken(req.query.refreshToken)
@@ -237,11 +194,11 @@ app.post('/changePassword', (req, res) => {
 
   const username = jwt.decode(accessToken).username
   authData.username = username
-  if (checkUsernameAndPassword(authData)) {
+  if (authenticateUsernameAndPassword(authData)) {
     const password = encryptUtil.cryptPassword(req.body.newPassword)
-    const user = retrieveUserByUsername(username)
+    const user = userDao.retrieveUserByUsername(username)
     user.password = password
-    saveUser(user);
+    userDao.saveUser(user);
     res.sendStatus(200)
   } else {
     return res.sendStatus(401)
@@ -261,23 +218,23 @@ function authenticate(req, res) {
   }
 
   const authData = req.body
-  if (checkUsernameAndPassword(authData)) {
+  if (authenticateUsernameAndPassword(authData)) {
     const username = req.body.username
     const user = { 'username': username }
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
 
-    let clientInfo = getClientInfo(req)
+    let clientInfo = requestUtil.getClientInfo(req)
     let accessTokenExpirationDate = jwt.decode(accessToken).exp * 1000
     let refreshTokenExpirationDate = jwt.decode(refreshToken).exp * 1000
     let refreshTokenCreatedDate = jwt.decode(refreshToken).iat * 1000
-    saveLogonInformation({
+    logonDataDao.saveLogonData({
       username,
       refreshToken,
       clientInfo,
       refreshTokenCreatedDate,
       refreshTokenExpirationDate,
-      remoteAddress: getRemoteAddress(req)
+      remoteAddress: requestUtil.getRemoteAddress(req)
     })
 
     res.json({
@@ -292,44 +249,9 @@ function authenticate(req, res) {
   }
 }
 
-function getRemoteAddress(req) {
-    
-  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  var host = req.get('host')
-  
-  if(ip === "127.0.0.1" || ip === "::ffff:127.0.0.1" || ip === "::1" || host.indexOf("localhost") !== -1)
-    return "localhost"
-  else return ip
-}
-
-function getClientInfo(request) {
-  let clientInfo = {
-    clientIPaddr: null,
-    clientProxy: null
-  }
-
-  // is client going through a proxy?
-  if (request.headers['via']) {
-    clientInfo.clientIPaddr = request.headers['x-forwarded-for']
-    clientInfo.clientProxy = request.headers['via']
-  } else {
-    clientInfo.clientIPaddr = request.connection.remoteAddress
-    clientInfo.clientProxy = "none"
-  }
-  clientInfo.userAgent = request.headers['user-agent']
-  
-  return clientInfo
-}
-
-function checkUsernameAndPassword(authData) {
-  if (process.env.FAKE_PERSISTENT_DATA) {
-    let usersArray = users.filter(u => {
-      return u.username === authData.username
-    })
-    return usersArray.length && encryptUtil.comparePassword(authData.password, usersArray[0].password) 
-  } else {
-    throw 'Not implemented yet for non fake persistent data'
-  }
+function authenticateUsernameAndPassword(authData) {
+    let user = userDao.retrieveUserByUsername(authData.username)
+    return user && user.username && encryptUtil.comparePassword(authData.password, user.password) 
 }
 
 app.get('/userSessions', (req, res) => {
@@ -341,79 +263,12 @@ app.get('/userSessions', (req, res) => {
   }
   jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403)
-    else {
-      if (process.env.FAKE_PERSISTENT_DATA) {
-        let filterResult = logonDataArray.filter(l => l.username === user.username)
-        if(filterResult) res.json(filterResult)
-      } else {
-        throw 'Not implemented yet for non fake persistent data'
-      } 
+    else { 
+      let queryResult = logonDataDao.filterLogonDataByUsername(user.username)
+      if(queryResult) res.json(queryResult)
     }
   }) 
 })
 
-function sendRetrievePasswordMail(user, retrievePasswordToken) {
-  const transport = createTransport()
-
-  const mailOptions = createMailOptionsForRetrievingPassword(user, retrievePasswordToken)
-
-  transport.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  })
-}
-
-function sendConfirmationMail(user) {
-  const transport = createTransport()
-
-  const mailOptions = createMailOptionsForEmailConfirmation(user)
-
-  transport.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  })
-}
-
-function createMailOptionsForRetrievingPassword(user, retrievePasswordToken) {
-  return {
-    from: process.env.SMTP_FROM,
-    to: user.username,
-    subject: 'Retrieve password',
-    html: `<p>Change the password for <strong>${user.username}</strong> by clicking <a href="${generateRetrievePasswordTokenLink(user, retrievePasswordToken)}">here</a></p>`
-  }
-}
-
-function createMailOptionsForEmailConfirmation(user) {
-  return {
-    from: process.env.SMTP_FROM,
-    to: user.username,
-    subject: 'User registration confirmation',
-    html: `<p>User registration confirmation for <strong>${user.username}</strong></p><p><a href="${generateConfirmationEmailTokenLink(user)}">Click here to confirm your email</a></p>`
-  }
-}
-
-function createTransport() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  })
-}
-
-function generateConfirmationEmailTokenLink(user) {
-  return process.env.VUE_APP_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
-}
-function generateRetrievePasswordTokenLink(user, retrievePasswordToken) {
-  return process.env.VUE_APP_URL + retrievePasswordEndPoint + '?retrievePasswordToken=' + retrievePasswordToken
-}
 
 app.listen(4000)
