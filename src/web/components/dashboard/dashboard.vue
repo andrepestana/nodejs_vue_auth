@@ -1,16 +1,18 @@
 <template>
   <div id="dashboard">
-    
-    <h1>Dashboard</h1>
-    <p v-if="username">Logged as {{ username }}</p>
-    
-    <p v-for="(post,index) in posts" :key="index">{{ post.title }}</p>
+    <div class="dashboard-box">
+      <h1>Dashboard</h1>
+      <p v-if="username">Logged as {{ username }}</p>
+      
+      <post v-for="(post,index) in posts" :key="index" :post="post"></post>
+      
+    </div>
   </div>
 </template>
 
 <script>
   import axios from 'axios';
-
+  import post from '../post/post.vue'
   export default {
     computed: {
       username () {
@@ -25,12 +27,21 @@
     },
     created () {
       this.$store.dispatch('fetchPosts')
+    },
+    components: {
+      post
     }
     
   }
 </script>
 
 <style scoped>
+  .dashboard-box {
+    margin: 20px;
+    border: 1px solid #eee;
+    padding: 20px;
+    box-shadow: 0 2px 3px #ccc;
+  }
   h1, p {
     text-align: center;
   }

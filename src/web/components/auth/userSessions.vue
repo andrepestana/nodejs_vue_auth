@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="user-session-box">
         <h1 class="text-center">User sessions</h1>
         <div class="container border border-dark">
             <div class="row bg-dark text-white">
@@ -44,3 +44,11 @@ export default {
     }
 }
 </script>
+<style scoped>
+  .user-session-box {
+    margin: 20px;
+    border: 1px solid #eee;
+    padding: 20px;
+    box-shadow: 0 2px 3px #ccc;
+  }
+</style>

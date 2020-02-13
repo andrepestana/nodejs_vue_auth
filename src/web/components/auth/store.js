@@ -182,49 +182,10 @@ const actions = {
   },
 
   tryAutoLogin({ commit, dispatch }) {
-    const refreshTokenExpirationDateInMilli = localStorage.getItem('refreshTokenExpirationDateInMilli')
     const refreshToken = localStorage.getItem('refreshToken')
-    if (!refreshToken) {
-      commit('clearAuthData')
-      return
-    }
-    const now = new Date()
-    if (now.getTime() >= refreshTokenExpirationDateInMilli) {
-      commit('clearAuthData')
-      return
-    }
-    const accessToken = localStorage.getItem('accessToken')
-    const accessTokenExpirationDateInMilli = localStorage.getItem('accessTokenExpirationDateInMilli')
-    const username = localStorage.getItem('username')
-
-    if (now.getTime() >= accessTokenExpirationDateInMilli) {
-      //refreshToken
-      axios.post('/token', {
-        refreshToken: refreshToken
-      })
-        .then(res => {
-          dispatch('registerLoggedUser', res)
-          router.push('/dashboard')
+        return axios.post('/token', {
+          refreshToken: refreshToken
         })
-        .catch(error => {
-          dispatch('logout', refreshToken)
-        })
-      return
-    }
-    
-    commit('storeAuthUser', {
-      accessToken,
-      username,
-      refreshToken,
-      accessTokenExpirationDateInMilli,
-      refreshTokenExpirationDateInMilli,
-      timeToRefreshAccessTokenBeforeExpirationInMilli: process.env.VUE_APP_TIME_TO_REFRESH_TOKEN_BEFORE_ACCESS_TOKEN_EXP_IN_MILLI
-    })
-    axios.defaults.headers.common['Authorization'] = 'Bearer ' + state.user.accessToken
-
-    const accessTokenMilliSecsFromNowToExpire = accessTokenExpirationDateInMilli - new Date().getTime()
-    dispatch('setRefreshTokenTimer', accessTokenMilliSecsFromNowToExpire)
-
   },
 
   deregisterLoggedUser({ commit }) {
