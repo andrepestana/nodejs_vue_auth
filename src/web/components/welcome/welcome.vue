@@ -40,7 +40,7 @@ export default {
     margin: 10px;
     text-decoration: none;
     display: inline-block;
-    border: 1px solid #521751;
+    border: 1px solid #343a40;
     border-radius: 3px;
     width: 100px;
     padding: 10px;
@@ -50,7 +50,7 @@ export default {
 
   .cta a:hover,
   .cta a:active {
-    background-color: #521751;
+    background-color: #343a40;
     color: white;
   }
 </style>

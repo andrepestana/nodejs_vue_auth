@@ -3,6 +3,7 @@
         <messages></messages>
         <div class="change-password-form" v-if="!changePasswordSuccess">
             <form @submit.prevent="onSubmit">
+                <h1>Change Password</h1>
                 <input
                         type="hidden"
                         id="username"
@@ -123,7 +124,7 @@
 
   .input input:focus {
     outline: none;
-    border: 1px solid #521751;
+    border: 1px solid #000000;
     background-color: #eee;
   }
 

@@ -1,6 +1,7 @@
 <template>
     <div>
         <messages></messages>
+        <h1>Email confirmation</h1>
     </div>
 </template>
 <script>

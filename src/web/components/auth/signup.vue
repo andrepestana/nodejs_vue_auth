@@ -3,8 +3,9 @@
     <messages></messages>
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
+        <h1>Sign up</h1>
         <div class="input">
-          <label for="username">Mail</label>
+          <label for="username">Email</label>
           <input  refs="username"
                   type="text"
                   id="username"
@@ -132,7 +133,7 @@
 
   .input input:focus {
     outline: none;
-    border: 1px solid #521751;
+    border: 1px solid #000000;
     background-color: #eee;
   }
 

@@ -7,6 +7,7 @@ const authUtil = {
             store.state.auth.user.accessToken) {
             next()
         } else {
+            store.commit('clearAllMessages')
             store.commit('addMessage', {
                 messageId: 'logInBeforeContinuingMesage',
                 category: 'warningMessage',

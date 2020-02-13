@@ -1,3 +1,7 @@
+// The order to import bootstrap is important! Please keep it at the top
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
 import Vue from 'vue'
 import App from './App.vue'
 import axios from 'axios'
@@ -10,9 +14,6 @@ import yesOrNo from './filters/yesOrNo'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
-
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 axios.defaults.baseURL = process.env.VUE_APP_API_URL
 axios.defaults.headers.get['Accepts'] = 'application/json'

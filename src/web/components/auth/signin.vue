@@ -3,8 +3,9 @@
     <messages></messages>
     <div class="signin-form">
       <form @submit.prevent="onSubmit">
+        <h1>Sign in</h1>
         <div class="input">
-          <label for="username">Mail</label>
+          <label for="username">Username</label>
           <input
                   type="username"
                   id="username"
@@ -97,7 +98,7 @@
 
   .input input:focus {
     outline: none;
-    border: 1px solid #521751;
+    border: 1px solid #000000;
     background-color: #eee;
   }
 

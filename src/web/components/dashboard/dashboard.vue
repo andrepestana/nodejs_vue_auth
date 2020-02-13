@@ -34,8 +34,4 @@
   h1, p {
     text-align: center;
   }
-
-  p {
-    color: red;
-  }
 </style>
