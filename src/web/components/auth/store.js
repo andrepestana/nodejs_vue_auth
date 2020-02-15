@@ -3,8 +3,7 @@ import router from '../../router'
 
 const state = {
   user: null,
-  userSessions: [],
-  changePasswordSuccess: false
+  userSessions: []
 }
 
 const getters = {
@@ -16,9 +15,6 @@ const getters = {
   },
   userSessions(state) {
     return state.userSessions
-  },
-  changePasswordSuccess(state) {
-    return state.changePasswordSuccess
   }
 }
 
@@ -31,9 +27,6 @@ const mutations = {
   },
   storeUserSessions(state, userSessions) {
     state.userSessions = userSessions
-  },
-  setChangePasswordSuccess(state, bool) {
-    state.changePasswordSuccess = bool
   }
 }
 
@@ -53,26 +46,29 @@ const actions = {
   },
   changePassword({commit}, authData) {
     commit('clearAllMessages')
-    axios.post('/changePassword', authData)
-    .then(res => {
-      commit('addMessage', {
-        messageId: 'successOnChangingPassword',
-        category: 'successMessage',
-        message: 'Your password was successfully changed.'
-      })
-      commit('setChangePasswordSuccess', true) 
-    })
-    .catch(error => {
-      if (error.response.status === 422) {
-        commit('addMessages', error.response.data)
-      } else {
-        commit('addMessage', {
-          messageId: 'errorWhileChangingPassword',
-          category: 'errorMessage',
-          message: 'Error while changing password: ' + error.response.status + ': ' + error.response.statusText
+    return new Promise((res, rej) => {
+      axios.post('/changePassword', authData)
+        .then(resp => {
+          commit('addMessage', {
+            messageId: 'successOnChangingPassword',
+            category: 'successMessage',
+            message: 'Your password was successfully changed.'
+          })
+          res()
         })
-      }
-    })
+        .catch(error => {
+          if (error.response.status === 422) {
+            commit('addMessages', error.response.data)
+          } else {
+            commit('addMessage', {
+              messageId: 'errorWhileChangingPassword',
+              category: 'errorMessage',
+              message: 'Error while changing password: ' + error.response.status + ': ' + error.response.statusText
+            })
+          }
+          rej()
+        })
+    })  
   },
   setLogoutTimer({ dispatch }, { refreshToken, expirationTimeInMilli }) {
     setTimeout(() => {
@@ -183,9 +179,9 @@ const actions = {
 
   tryAutoLogin({ commit, dispatch }) {
     const refreshToken = localStorage.getItem('refreshToken')
-        return axios.post('/token', {
-          refreshToken: refreshToken
-        })
+    return axios.post('/token', {
+      refreshToken: refreshToken
+    })
   },
 
   deregisterLoggedUser({ commit }) {
@@ -244,7 +240,6 @@ const actions = {
       params: { emailConfirmationToken }
     })
     .then(res => {
-      
       commit('addMessages', res.data)
     })
     .catch(error => {
@@ -262,6 +257,67 @@ const actions = {
         })
       }
     }) 
+  },
+  sendEmailToRetrievePassword({ commit, dispatch }, formData) {
+    commit('clearAllMessages')
+    return new Promise(( res, rej ) => {
+      axios.post('/sendEmailToRetrievePassword', formData)
+        .then(resp => {
+          commit('addMessages', resp.data)
+          res()
+        })
+        .catch(error => {
+          if (!error.response) {
+            commit('addMessage', {
+              messageId: 'recoverPasswordError',
+              category: 'errorMessage',
+              message: 'Recover password error: ' + error
+            })
+          } else {
+            if (error.response.status === 422) {
+              commit('addMessages', error.response.data)
+            } else {
+              commit('addMessage', {
+                messageId: 'recoverPasswordError',
+                category: 'errorMessage',
+                message: 'Recover password error: ' + error.response.status + ': ' + error.response.statusText
+              })
+            }
+          }
+          rej()
+        })
+    }) 
+  },
+  changeLostPassword({ commit, dispatch }, formData) {
+    commit('clearAllMessages')
+    return new Promise((res, rej) => {
+
+      axios.post('/changeLostPassword', formData)
+        .then(resp => {
+          commit('addMessages', resp.data)
+          res()
+        })
+        .catch(error => {
+          if (!error.response) {
+            commit('addMessage', {
+              messageId: 'changeLostPasswordError',
+              category: 'errorMessage',
+              message: 'Change lost password error: ' + error
+            })
+          } else {
+            if (error.response.status === 422) {
+              commit('addMessages', error.response.data)
+            } else {
+              commit('addMessage', {
+                messageId: 'changeLostPasswordError',
+                category: 'errorMessage',
+                message: 'Change lost password error: ' + error.response.status + ': ' + error.response.statusText
+              })
+            }
+          }
+          rej()
+        }) 
+    })
   }
 }
 

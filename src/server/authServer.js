@@ -164,8 +164,22 @@ app.post('/sendEmailToRetrievePassword', (req, res) => {
     return res.status(422).send(validationMessages)
   }
   const retrievePasswordToken = generateRetrievePasswordToken({ 'username': req.body.username })
-  mailSender.sendRetrievePasswordMail(user, retrievePasswordToken)
-  return res.sendStatus(200)
+  mailSender.sendRetrievePasswordMail(req.body, retrievePasswordToken, function(error, info) {
+    if (error) {
+      res.status(500).send({
+        messageId: 'sendEmailToRetrievePasswordError',
+        message: error,
+        category: 'errorMessage'
+      })
+    } else {
+      res.status(200).send({
+        messageId: 'sendEmailToRetrievePasswordSuccess',
+        message: `An email was sent to ${req.body.username}. Check you inbox mail.`,
+        category: 'successMessage'
+      })
+    }
+  })
+  
 })
 
 app.delete('/logout', (req, res) => {
@@ -198,11 +212,47 @@ app.post('/changePassword', (req, res) => {
     const password = encryptUtil.cryptPassword(req.body.newPassword)
     const user = userDao.retrieveUserByUsername(username)
     user.password = password
-    userDao.saveUser(user);
+    userDao.updateUser(user);
     res.sendStatus(200)
   } else {
     return res.sendStatus(401)
   }
+})
+
+app.post('/changeLostPassword', (req, res) => {
+
+  jwt.verify(req.body.retrievePasswordToken, process.env.RETRIEVE_PASSWORD_TOKEN_SECRET, (err, user) => {
+    if (err) return res.status(403).send({
+      messageId: 'retrievePasswordError',
+      message: `The token provided is not valid`,
+      category: 'successMessage'
+    }) 
+    
+    const username = user.username
+    const persistedUser = userDao.retrieveUserByUsername(username)
+    if(persistedUser) {
+
+      let validationMessages = new ExtendedArray()
+      validationMessages.pushArray(userValidation.validateNewPassword(req.body.newPassword, req.body.password))
+      validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.newPassword, req.body.confirmPassword))
+      // return 422 in case of invalid
+      if(validationMessages.length) {
+        return res.status(422).send(validationMessages.filter((vm) => vm != undefined))
+      }
+      
+      const password = encryptUtil.cryptPassword(req.body.newPassword)
+      persistedUser.password = password
+      userDao.updateUser(persistedUser);
+      res.sendStatus(200)
+    } else {
+      res.status(403).send({
+        messageId: 'retrievePasswordError',
+        message: `The token provided is not valid`,
+        category: 'successMessage'
+      }) 
+    }
+    
+  })
 })
 
 app.post('/login', authenticate)

@@ -14,7 +14,7 @@ const authUtil = {
                     const refreshToken = localStorage.getItem('refreshToken')
                     if(refreshToken) store.dispatch('logout', refreshToken)
                     store.commit('addMessage', {
-                        messageId: 'errorWhileAutoLoginMesage',
+                        messageId: 'errorWhileAutoLoginMessage',
                         category: 'errorMessage',
                         message: 'Something wrong happened when trying to auto login:' + error
                     })
@@ -24,7 +24,7 @@ const authUtil = {
                 const refreshToken = localStorage.getItem('refreshToken')
                 if(refreshToken) store.dispatch('logout', refreshToken)
                 store.commit('addMessage', {
-                    messageId: 'errorWhileAutoLoginMesage',
+                    messageId: 'errorWhileAutoLoginMessage',
                     category: 'errorMessage',
                     message: 'Something wrong happened when trying to auto login:' + error
                 })
@@ -37,10 +37,18 @@ const authUtil = {
         } else {
             store.commit('clearAllMessages')
             store.commit('addMessage', {
-                messageId: 'logInBeforeContinuingMesage',
+                messageId: 'logInBeforeContinuingMessage',
                 category: 'warningMessage',
                 message: 'Please log in before continuing'
               })
+            next('/signin')
+        }
+    }, 
+    authRouteForRetrievingPassword(to, next) {
+        if (to.query.retrievePasswordToken) {
+
+            next()
+        } else {
             next('/signin')
         }
     }

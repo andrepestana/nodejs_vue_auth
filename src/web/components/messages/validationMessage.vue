@@ -1,7 +1,7 @@
 <template>
     <div>
-        <div class="alert alert-danger" role="alert" v-if="messages.length">
-            <ul class="list-unstyled">
+        <div class="bg-danger text-white" role="alert" v-if="messages.length">
+            <ul>
                 <li v-for="(message,index) in messages" :key="index">
                     {{ message.message }}
                 </li>
@@ -29,3 +29,10 @@ export default {
     }
 }
 </script>
+<style scoped>
+ul {
+    list-style-type: square;
+    padding: 4px;
+    padding-left: 25px;
+}
+</style>

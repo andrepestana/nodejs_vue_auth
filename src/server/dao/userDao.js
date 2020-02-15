@@ -13,7 +13,7 @@ const userDao = {
             throw 'Not implemented yet for non fake persistent data'
         }
     },
-    update(user) {
+    updateUser(user) {
         if (process.env.FAKE_PERSISTENT_DATA) {
             let foundIndex = users.findIndex(u => u.username == user.username);
             if(foundIndex !== -1) {

@@ -2,6 +2,7 @@
   <div id="dashboard">
     <div class="dashboard-box">
       <h1>Dashboard</h1>
+      <messages></messages>
       <p v-if="username">Logged as {{ username }}</p>
       
       <post v-for="(post,index) in posts" :key="index" :post="post"></post>
@@ -11,7 +12,7 @@
 </template>
 
 <script>
-  import axios from 'axios';
+  import messages from '../messages/messages.vue'
   import post from '../post/post.vue'
   export default {
     computed: {
@@ -29,6 +30,7 @@
       this.$store.dispatch('fetchPosts')
     },
     components: {
+      messages,
       post
     }
     

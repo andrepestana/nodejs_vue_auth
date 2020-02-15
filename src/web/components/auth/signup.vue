@@ -1,9 +1,10 @@
 <template>
   <div id="signup">
-    <messages></messages>
+    
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
         <h1>Sign up</h1>
+        <messages></messages>
         <div class="input">
           <label for="username">Email</label>
           <input  refs="username"
@@ -11,7 +12,7 @@
                   id="username"
                   v-model="username"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="username"></validation-messages>
+          <validation-message messageForId="username"></validation-message>
         </div>
         <div class="input">
           <label for="password">Password</label>
@@ -20,7 +21,7 @@
                   id="password"
                   v-model="password"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="password"></validation-messages>
+          <validation-message messageForId="password"></validation-message>
         </div>
         <div class="input">
           <label for="confirm-password">Confirm Password</label>
@@ -29,7 +30,7 @@
                   id="confirm-password"
                   v-model="confirmPassword"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="confirm-password"></validation-messages>  
+          <validation-message messageForId="confirm-password"></validation-message>  
         </div>
         <div class="input">
           <label for="age">Your Age</label>
@@ -38,7 +39,7 @@
                   id="age"
                   v-model.number="age"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="age"></validation-messages>
+          <validation-message messageForId="age"></validation-message>
         </div>
         <div class="input inline">
           <input  type="checkbox" 
@@ -46,7 +47,7 @@
                   v-model="terms"
                   @click="clearMessageById($event)">
           <label for="terms">Accept Terms of Use</label>
-          <validation-messages messageForId="terms"></validation-messages>
+          <validation-message messageForId="terms"></validation-message>
         </div>
         <div class="submit">
           <button type="submit" class="btn btn-dark">Submit</button>
@@ -58,7 +59,7 @@
 
 <script>
   import messages from '../messages/messages.vue'
-  import validationMessages from '../messages/validationMessages.vue'
+  import validationMessage from '../messages/validationMessage.vue'
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
 
   export default {
@@ -91,7 +92,7 @@
     },
     components: {
         messages,
-        validationMessages
+        validationMessage
     }
   }
 </script>

@@ -1,9 +1,10 @@
 <template>
     <div id="signup">
-        <messages></messages>
-        <div class="change-password-form" v-if="!changePasswordSuccess">
+        
+        <div class="change-password-form">
             <form @submit.prevent="onSubmit">
                 <h1>Change Password</h1>
+                <messages></messages>
                 <input
                         type="hidden"
                         id="username"
@@ -16,8 +17,9 @@
                             id="password"
                             name="password"
                             v-model="password"
-                            @focus="clearMessageById($event)">
-                    <validation-messages messageForId="password"></validation-messages>
+                            @focus="clearMessageById($event)"
+                            :disabled="disableSubmission">
+                    <validation-message messageForId="password"></validation-message>
                 </div>
                 <div class="input">
                     <label for="new-password">New Password</label>
@@ -26,8 +28,9 @@
                             id="new-password"
                             name="newPassword   "
                             v-model="newPassword"
-                            @focus="clearMessageById($event)">
-                    <validation-messages messageForId="new-password"></validation-messages>  
+                            @focus="clearMessageById($event)"
+                            :disabled="disableSubmission">
+                    <validation-message messageForId="new-password"></validation-message>  
                 </div>
                 <div class="input">
                     <label for="confirm-password">Confirm Password</label>
@@ -35,11 +38,16 @@
                             type="password"
                             id="confirm-password"
                             v-model="confirmPassword"
-                            @focus="clearMessageById($event)">
-                    <validation-messages messageForId="confirm-password"></validation-messages>  
+                            @focus="clearMessageById($event)"
+                            :disabled="disableSubmission">
+                    <validation-message messageForId="confirm-password"></validation-message>  
                 </div>
                 <div class="submit">
-                    <button type="submit" class="btn btn-dark">Submit</button>
+                    <button type="submit" 
+                            class="btn btn-dark"
+                            :disabled="disableSubmission">
+                        Submit
+                    </button>
                 </div>
             </form>
         </div>
@@ -47,7 +55,7 @@
 </template>
 <script>
     import messages from '../messages/messages.vue'
-    import validationMessages from '../messages/validationMessages.vue'
+    import validationMessage from '../messages/validationMessage.vue'
     import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
 
     export default {
@@ -57,33 +65,32 @@
                 password: '',
                 newPassword: '',
                 confirmPassword: '',
-
+                disableSubmission: false
             }
         },
         methods: {
             onSubmit () {
+                this.$nextTick(()=> {
+                    this.disableSubmission = true
+                })
                 const formData = {
                     password: this.password,
                     newPassword: this.newPassword,
                     confirmPassword: this.confirmPassword
                 }
                 this.$store.dispatch('changePassword', formData)
+                    .then(() => this.disableSubmission = true)
+                    .catch(() => this.disableSubmission = false)
             }
         },
         computed: {
             username() {
                 return this.$store.getters.user.username
-            },
-            changePasswordSuccess() {
-                return this.$store.getters.changePasswordSuccess
             }
         },
         components: {
             messages,
-            validationMessages
-        },
-        created() {
-            return this.$store.commit('setChangePasswordSuccess', false)
+            validationMessage
         }
     }
 </script>

@@ -1,5 +1,6 @@
 <template>
   <div id="welcome">
+    <messages></messages>
     <h1>Front Page</h1>
     <div class="cta">
       <router-link to="/signup">Sign Up</router-link>
@@ -8,20 +9,20 @@
   </div>
 </template>
 <script>
-export default {
-  created() {
-    if(this.$store.getters.isAuthenticated) {
-      this.$router.push('/dashboard')
+  import messages from '../messages/messages.vue'
+  
+  export default {
+    created() {
+      if(this.$store.getters.isAuthenticated) {
+        this.$router.push('/dashboard')
+      }
+    },
+    components: {
+      messages
     }
   }
-}
 </script>
 <style scoped>
-  #welcome {
-    width: 80%;
-    margin: auto;
-  }
-
   h1 {
     text-align: center;
   }

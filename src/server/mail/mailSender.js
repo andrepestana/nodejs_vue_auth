@@ -2,27 +2,21 @@ const nodemailer = require('nodemailer');
 
 //TODO create constants object
 const emailConfirmationEndPoint = '/confirmEmail'
-const retrievePasswordEndPoint = '/retrievePassword'
+const changeLostPasswordEndPoint = '/changeLostPassword'
 
 
 module.exports = {
-    sendRetrievePasswordMail(user, retrievePasswordToken) {
-        const transport = createTransport()
+    sendRetrievePasswordMail(user, retrievePasswordToken, sendMailCallback) {
+        const transport = this.createTransport()
       
-        const mailOptions = createMailOptionsForRetrievingPassword(user, retrievePasswordToken)
+        const mailOptions = this.createMailOptionsForRetrievingPassword(user, retrievePasswordToken)
       
-        transport.sendMail(mailOptions, function(error, info){
-          if (error) {
-            console.log(error);
-          } else {
-            console.log('Email sent: ' + info.response);
-          }
-        })
+        transport.sendMail(mailOptions, sendMailCallback)
       },
       sendConfirmationMail(user) {
-        const transport = createTransport()
+        const transport = this.createTransport()
       
-        const mailOptions = createMailOptionsForEmailConfirmation(user)
+        const mailOptions = this.createMailOptionsForEmailConfirmation(user)
       
         transport.sendMail(mailOptions, function(error, info){
           if (error) {
@@ -37,7 +31,7 @@ module.exports = {
           from: process.env.SMTP_FROM,
           to: user.username,
           subject: 'Retrieve password',
-          html: `<p>Change the password for <strong>${user.username}</strong> by clicking <a href="${this.generateRetrievePasswordTokenLink(user, retrievePasswordToken)}">here</a></p>`
+          html: `<p>Change the password for <strong>${user.username}</strong> by clicking <a href="${this.generateRetrievePasswordTokenLink(retrievePasswordToken)}">here</a></p>`
         }
       },
       createMailOptionsForEmailConfirmation(user) {
@@ -61,8 +55,8 @@ module.exports = {
       generateConfirmationEmailTokenLink(user) {
         return process.env.VUE_APP_URL + emailConfirmationEndPoint + '?emailConfirmationToken=' + user.emailConfirmationToken
       },
-      generateRetrievePasswordTokenLink(user, retrievePasswordToken) {
-        return process.env.VUE_APP_URL + retrievePasswordEndPoint + '?retrievePasswordToken=' + retrievePasswordToken
+      generateRetrievePasswordTokenLink(retrievePasswordToken) {
+        return process.env.VUE_APP_URL + changeLostPasswordEndPoint + '?retrievePasswordToken=' + retrievePasswordToken
       }
       
 }

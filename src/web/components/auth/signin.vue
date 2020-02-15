@@ -1,9 +1,10 @@
 <template>
   <div id="signin">
-    <messages></messages>
+    
     <div class="signin-form">
       <form @submit.prevent="onSubmit">
         <h1>Sign in</h1>
+        <messages></messages>
         <div class="input">
           <label for="username">Username</label>
           <input
@@ -11,7 +12,7 @@
                   id="username"
                   v-model="username"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="username"></validation-messages>
+          <validation-message messageForId="username"></validation-message>
         </div>
         <div class="input">
           <label for="password">Password</label>
@@ -20,11 +21,12 @@
                   id="password"
                   v-model="password"
                   @focus="clearMessageById($event)">
-          <validation-messages messageForId="password"></validation-messages>
+          <validation-message messageForId="password"></validation-message>
         </div>
         <div class="submit">
           <button type="submit" class="btn btn-dark">Submit</button>
         </div>
+        <div><router-link to="/recoverPassword">Recover password</router-link></div>
       </form>
     </div>
   </div>
@@ -32,7 +34,7 @@
 
 <script>
   import messages from '../messages/messages.vue'
-  import validationMessages from '../messages/validationMessages.vue'
+  import validationMessage from '../messages/validationMessage.vue'
   import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
   
   export default {
@@ -56,11 +58,10 @@
       if(this.$store.getters.isAuthenticated) {
         this.$router.push('/dashboard')
       }
-    },
-    
+    },    
     components: {
         messages,
-        validationMessages
+        validationMessage
     }
   }
 </script>

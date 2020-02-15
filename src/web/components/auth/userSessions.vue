@@ -1,6 +1,7 @@
 <template>
     <div class="user-session-box">
         <h1 class="text-center">User sessions</h1>
+        <messages></messages>
         <div class="container border border-dark">
             <div class="row bg-dark text-white">
                 <div class="col-2 border border-dark p-2 text-wrap">Session started</div>
@@ -25,24 +26,28 @@
     </div>
 </template>
 <script>
-export default {
-    created() {
-        this.$store.dispatch('getUserSessions')
-    },
-    computed: {
-      userSessions () {
-        return this.$store.getters.userSessions
-      }      
-    },
-    methods: {
-        logItOut(index) {
-            this.$store.dispatch('logItOut', this.userSessions[index].refreshToken)
-        },
-        isCurrentSession(index) {
-          return this.userSessions[index].refreshToken === this.$store.getters.user.refreshToken 
-        }
-    }
-}
+  import messages from '../messages/messages.vue'
+  export default {
+      created() {
+          this.$store.dispatch('getUserSessions')
+      },
+      computed: {
+        userSessions () {
+          return this.$store.getters.userSessions
+        }      
+      },
+      methods: {
+          logItOut(index) {
+              this.$store.dispatch('logItOut', this.userSessions[index].refreshToken)
+          },
+          isCurrentSession(index) {
+            return this.userSessions[index].refreshToken === this.$store.getters.user.refreshToken 
+          }
+      },
+      components: {
+          messages
+      }
+  }
 </script>
 <style scoped>
   .user-session-box {
