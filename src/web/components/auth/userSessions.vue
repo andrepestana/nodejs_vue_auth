@@ -8,6 +8,9 @@
                 :key="index"
                 v-bind:class="{ 'alert-warning': isCurrentSession(index) }"
                 class="user-sesion-item">
+              <div v-if="isCurrentSession(index)">
+                <div class="font-weight-bold bg-danger text-white text-center">Current Session</div>
+              </div>
               <div>
                 <div class="font-weight-bold d-md-table-cell label">Started at: </div>
                 <div class="d-md-table-cell">{{ new Date(userSession.refreshTokenCreatedDate) | formatDateTime }}</div>

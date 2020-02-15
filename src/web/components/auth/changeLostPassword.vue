@@ -69,15 +69,12 @@
         components: {
             messages,
             validationMessage
-        },
-        created() {
-            return this.$store.commit('setChangePasswordSuccess', false)
         }
     }    
 </script>
 <style scoped>
   .change-lost-password-form {
-    width: 400px;
+    max-width: 600px;
     margin: 30px auto;
     border: 1px solid #eee;
     padding: 20px;

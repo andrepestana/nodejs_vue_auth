@@ -294,7 +294,11 @@ const actions = {
 
       axios.post('/changeLostPassword', formData)
         .then(resp => {
-          commit('addMessages', resp.data)
+          commit('addMessage', {
+            messageId: 'successOnChangingPassword',
+            category: 'successMessage',
+            message: 'Your password was successfully changed.'
+          })
           res()
         })
         .catch(error => {
