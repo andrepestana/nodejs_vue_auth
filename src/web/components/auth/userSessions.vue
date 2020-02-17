@@ -51,7 +51,7 @@
       },
       computed: {
         userSessions () {
-          return this.$store.getters.userSessions
+          return this.$store.getters.userSessions | []
         }      
       },
       methods: {

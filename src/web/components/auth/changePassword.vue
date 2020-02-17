@@ -85,7 +85,8 @@
         },
         computed: {
             username() {
-                return this.$store.getters.user.username
+                if(this.$store.getters.user)
+                    return this.$store.getters.user.username
             }
         },
         components: {

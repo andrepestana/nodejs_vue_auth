@@ -1,9 +1,10 @@
-const ExtendedArray = require('../util/ExtendedArray.js')
+const extendedArray = require('../util/extendedArray')
 const userDao = require('../dao/userDao')
+const encryptUtil = require('../util/encryptUtil')
 
 function getValidationsForPasswordDefinition( password, messageForId, messageId, fieldName) {
     const minLength = 6
-    let validationMessages = new ExtendedArray()
+    let validationMessages = new extendedArray()
     validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
     validationMessages.pushDefined(stringMin(password, messageForId, messageId, fieldName, minLength))
     validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'A-Z', 'uppercase character'))
@@ -18,17 +19,33 @@ module.exports = {
         const messageForId = "username"
         const messageId = "usernameValidation"
         const fieldName = "Username"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
         validationMessages.pushDefined(isEmail(username, messageForId, messageId, fieldName))
 
         return validationMessages
     },
+    validateUsernameDoesntExist(username) {
+        const messageForId = "username"
+        const messageId = "usernameValidation"
+        let validationMessages = new extendedArray()
+
+        const persistedUser = userDao.retrieveUserByUsername(username)
+        if(persistedUser) {
+            validationMessages.push({
+                messageForId,
+                messageId,
+                message: `Username already registered`,
+                category: 'validationMessage'
+            })
+        }
+        return validationMessages
+    },
     validateUsernameExists(username) {
         const messageForId = "username"
         const messageId = "usernameValidation"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         const persistedUser = userDao.retrieveUserByUsername(username)
         if(!persistedUser || !persistedUser.username) {
@@ -45,7 +62,7 @@ module.exports = {
         const messageForId = "username"
         const messageId = "usernameValidation"
         const fieldName = "Username"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
         
@@ -65,7 +82,7 @@ module.exports = {
         const messageId = "confirmPasswordValidation"
         const fieldName = "Confirm Password"
         const passwordFieldName = "Password"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         validationMessages.pushDefined(required(confirmPassword, messageForId, messageId, fieldName))
         validationMessages.pushDefined(areEqual(confirmPassword, messageForId, messageId, fieldName, password, passwordFieldName))
@@ -76,7 +93,7 @@ module.exports = {
         const messageForId = "password"
         const messageId = "passwordValidation"
         const fieldName = "Password"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
         return validationMessages
@@ -91,12 +108,27 @@ module.exports = {
 
         return validationMessages
     },
+    validateUserIsAuthenticated: function (username, password) {
+        const messageForId = "password"
+        const messageId = "passwordValidation"
+        const fieldName = "Password"
+        let validationMessages = new extendedArray()
+
+        if(!authenticateUsernameAndPassword({username, password})) {
+            validationMessages.push({
+                messageId: 'changePasswordValidation',
+                category: 'validationMessage',
+                message: 'Wrong password'
+            })
+        }
+        return validationMessages
+    },
     validateAge: function (age) {
         const messageForId = "age"
         const messageId = "ageValidation"
         const fieldName = "Age"
         const minAge = 18
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
 
         validationMessages.pushDefined(required(age, messageForId, messageId, fieldName))
         validationMessages.pushDefined(numberMin(age, messageForId, messageId, fieldName, minAge))
@@ -107,7 +139,7 @@ module.exports = {
         const messageForId = "terms"
         const messageId = "termsValidation"
         const fieldName = "Accepting Terms"
-        let validationMessages = new ExtendedArray()
+        let validationMessages = new extendedArray()
         validationMessages.pushDefined(required(terms, messageForId, messageId, fieldName))
 
         return validationMessages
@@ -188,4 +220,8 @@ function mustContainOneOf(input, messageForId, messageId, fieldName, chars, char
 }
 function regExpEscape(literal_string) {
     return literal_string.replace(/["\'-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&');
+}
+function authenticateUsernameAndPassword(authData) {
+    let user = userDao.retrieveUserByUsername(authData.username)
+    return user && user.username && encryptUtil.comparePassword(authData.password, user.password) 
 }

@@ -52,6 +52,8 @@
           password: this.password,
         }
         this.$store.dispatch('login', formData)
+          .then(() => this.$router.push('/'))
+          .catch(() => {})
       }
     },
     created() {

@@ -32,7 +32,7 @@ const mutations = {
 
 const actions = {
   getUserSessions({commit}) {
-    axios.get('/userSessions')
+    axios.get('/api/auth/userSessions')
     .then(res => {
       commit('storeUserSessions', res.data)
     })
@@ -46,27 +46,26 @@ const actions = {
   },
   changePassword({commit}, authData) {
     commit('clearAllMessages')
-    return new Promise((res, rej) => {
-      axios.post('/changePassword', authData)
+    return new Promise((result, reject) => {
+      axios.post('/api/auth/changePassword', authData)
         .then(resp => {
-          commit('addMessage', {
-            messageId: 'successOnChangingPassword',
-            category: 'successMessage',
-            message: 'Your password was successfully changed.'
-          })
-          res()
+          commit('addMessages', resp.data.messages)
+          result()
         })
         .catch(error => {
-          if (error.response.status === 422) {
-            commit('addMessages', error.response.data)
-          } else {
+          if(error.response && 
+            error.response.data && 
+            error.response.data.messages)
+            commit('addMessages', error.response.data.messages )
+          else
             commit('addMessage', {
-              messageId: 'errorWhileChangingPassword',
-              category: 'errorMessage',
-              message: 'Error while changing password: ' + error.response.status + ': ' + error.response.statusText
-            })
-          }
-          rej()
+                messageId: 'changePasswordError',
+                category: 'errorMessage',
+                message: 'Change password error: ' + (error.response ? 
+                                            (error.response.status + ': ' + error.response.statusText) : 
+                                            error)
+          })
+          reject()
         })
     })  
   },
@@ -78,7 +77,7 @@ const actions = {
   setRefreshTokenTimer({ dispatch }, expirationTimeInMilli) {
     setTimeout(() => {
       if (state.user) {
-        axios.post('/token', {
+        axios.post('/api/auth/token', {
           refreshToken: state.user.refreshToken
         })
         .then(res => {
@@ -93,70 +92,61 @@ const actions = {
 
   signup({ commit, dispatch }, authData) {
     commit('clearAllMessages')
-    axios.post('/signup', authData)
-    .then(res => {
-      dispatch('registerLoggedUser', res)
-      router.push('/')
-    })
-    .catch(error => {
-      if (!error.response) {
-        commit('addMessage', {
-          messageId: 'loginError',
-          category: 'errorMessage',
-          message: 'Login error: ' + error
+    return new Promise( (result,reject) => {
+      axios.post('/api/auth/signup', authData)
+        .then(resp => {
+          commit('addMessages', resp.data.messages )
+          dispatch('registerLoggedUser', resp)
+          result()
         })
-      } else if (error.response.status === 409) {
-        commit('addMessage', {
-          messageId: 'signupFailed',
-          category: 'warningMessage',
-          message: 'Username already exists!'
+        .catch(error => {
+          if(error.response && 
+            error.response.data && 
+            error.response.data.messages)
+            commit('addMessages', error.response.data.messages )
+          else
+            commit('addMessage', {
+                messageId: 'signupError',
+                category: 'errorMessage',
+                message: 'Signup error: ' + (error.response ? 
+                                            (error.response.status + ': ' + error.response.statusText) : 
+                                            error)
+          })
+          reject()
         })
-      } else if (error.response.status === 422) {
-        commit('addMessages', error.response.data)
-      } else {
-        commit('addMessage', {
-          messageId: 'loginError',
-          category: 'errorMessage',
-          message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
-        })
-      }
     })
   },
 
   login({ commit, dispatch }, authData) {
     commit('clearAllMessages')
-    axios.post('/login', {
-      username: authData.username,
-      password: authData.password,
-      returnSecureToken: true
+    return new Promise((result, rejection) => {
+      axios.post('/api/auth/login', {
+        username: authData.username,
+        password: authData.password,
+        returnSecureToken: true
+      })
+        .then(resp => {
+          commit('addMessages', resp.data.messages )
+          dispatch('registerLoggedUser', resp)
+          result()
+        })
+        .catch(error => {
+          if(error.response && 
+            error.response.data && 
+            error.response.data.messages)
+            commit('addMessages', error.response.data.messages )
+          else {
+            commit('addMessage', {
+                messageId: 'loginError',
+                category: 'errorMessage',
+                message: 'Login error: ' + (error.response ? 
+                                            (error.response.status + ': ' + error.response.statusText) : 
+                                            error)
+            })
+            rejection()
+          }
+        })
     })
-      .then(res => {
-        dispatch('registerLoggedUser', res)
-        router.push('/')
-      })
-      .catch(error => {
-        if (!error.response) {
-          commit('addMessage', {
-            messageId: 'loginError',
-            category: 'errorMessage',
-            message: 'Login error: ' + error
-          })
-        } else if(error.response.status === 401) {
-          commit('addMessage', {
-            messageId: 'loginFailed',
-            category: 'validationMessage',
-            message: 'Username or Password invalid'
-          })
-        } else if(error.response.status === 422) {
-          commit('addMessages', error.response.data)
-        } else {
-          commit('addMessage', {
-            messageId: 'loginError',
-            category: 'errorMessage',
-            message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
-          })
-        }
-      })
   },
 
   registerLoggedUser({ commit, dispatch }, res) {
@@ -179,7 +169,7 @@ const actions = {
 
   tryAutoLogin({ commit, dispatch }) {
     const refreshToken = localStorage.getItem('refreshToken')
-    return axios.post('/token', {
+    return axios.post('/api/auth/token', {
       refreshToken: refreshToken
     })
   },
@@ -190,10 +180,12 @@ const actions = {
     delete axios.defaults.headers.common["Authorization"]
   },
   logItOut({ commit, dispatch }, refreshToken) {
-    axios.delete('/logout', {
+    
+    axios.delete('/api/auth/logout', {
       params: { refreshToken: refreshToken }
     })
-    .then(res => {
+    .then(resp => {
+      commit('addMessages', resp.data.messages )
       dispatch('getUserSessions')
     })
     .catch(error => {
@@ -205,38 +197,42 @@ const actions = {
     })
   },
   logout({ commit, dispatch }, refreshToken) {
-    axios.delete('/logout', {
-      params: { refreshToken }
-    })
-    .then(res => {
-      dispatch('deregisterLoggedUser')
-      commit('clearAllMessages')
-      commit('addMessage', {
-        messageId: 'loggedOut',
-        category: 'warningMessage',
-        message: 'You\'ve been logged out.'
+    commit('clearAllMessages')
+    return new Promise((result, rejection) => {
+      axios.delete('/api/auth/logout', {
+        params: { refreshToken }
       })
-      router.replace('/signin')
-    })
-    .catch(error => {
-      if (!error.response) {
+      .then(resp => {
+        commit('addMessages', resp.data.messages )
+        dispatch('deregisterLoggedUser')
         commit('addMessage', {
-          messageId: 'logoutError',
-          category: 'errorMessage',
-          message: 'Login error: ' + error
+          messageId: 'loggedOut',
+          category: 'warningMessage',
+          message: 'You\'ve been logged out.'
         })
-      } else {
-        commit('addMessage', {
-          messageId: 'logoutError',
-          category: 'errorMessage',
-          message: 'Login error: ' + error.response.status + ': ' + error.response.statusText
-        })
-      }
+        result()
+      })
+      .catch(error => {
+        if(error.response && 
+          error.response.data && 
+          error.response.data.messages)
+          commit('addMessages', error.response.data.messages )
+        else {
+          commit('addMessage', {
+              messageId: 'logoutError',
+              category: 'errorMessage',
+              message: 'Logout error: ' + (error.response ? 
+                                          (error.response.status + ': ' + error.response.statusText) : 
+                                          error)
+          })
+          rejection()
+        }
+      })
     })
   },
   confirmEmail({ commit, dispatch }, emailConfirmationToken) {
     commit('clearAllMessages')
-    axios.get('/confirmEmail', {
+    axios.get('/api/auth/confirmEmail', {
       params: { emailConfirmationToken }
     })
     .then(res => {
@@ -261,7 +257,7 @@ const actions = {
   sendEmailToRetrievePassword({ commit, dispatch }, formData) {
     commit('clearAllMessages')
     return new Promise(( res, rej ) => {
-      axios.post('/sendEmailToRetrievePassword', formData)
+      axios.post('/api/auth/sendEmailToRetrievePassword', formData)
         .then(resp => {
           commit('addMessages', resp.data)
           res()
@@ -291,36 +287,26 @@ const actions = {
   changeLostPassword({ commit, dispatch }, formData) {
     commit('clearAllMessages')
     return new Promise((res, rej) => {
-
-      axios.post('/changeLostPassword', formData)
-        .then(resp => {
-          commit('addMessage', {
-            messageId: 'successOnChangingPassword',
-            category: 'successMessage',
-            message: 'Your password was successfully changed.'
+        axios.post('/api/auth/changeLostPassword', formData)
+          .then(resp => {
+            commit('addMessages', resp.data.messages )
+            res()
           })
-          res()
-        })
-        .catch(error => {
-          if (!error.response) {
-            commit('addMessage', {
-              messageId: 'changeLostPasswordError',
-              category: 'errorMessage',
-              message: 'Change lost password error: ' + error
-            })
-          } else {
-            if (error.response.status === 422) {
-              commit('addMessages', error.response.data)
-            } else {
+          .catch(error => {
+            if(error.response && 
+              error.response.data && 
+              error.response.data.messages)
+              commit('addMessages', resp.data.messages )
+            else
               commit('addMessage', {
-                messageId: 'changeLostPasswordError',
-                category: 'errorMessage',
-                message: 'Change lost password error: ' + error.response.status + ': ' + error.response.statusText
-              })
-            }
-          }
-          rej()
-        }) 
+                  messageId: 'changeLostPasswordError',
+                  category: 'errorMessage',
+                  message: 'Change lost password error: ' + (error.response ? 
+                                                            (error.response.status + ': ' + error.response.statusText) : 
+                                                            error)
+            })
+            rej()
+          }) 
     })
   }
 }

@@ -29,6 +29,8 @@
     methods: {
       onLogout() {
         this.$store.dispatch('logout', this.$store.getters.user.refreshToken)
+          .then(() => this.$router.push('/signin'))
+          .catch(() => {})
       }
     }
   }

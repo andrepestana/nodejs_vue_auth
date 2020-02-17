@@ -50,7 +50,11 @@
           <validation-message messageForId="terms"></validation-message>
         </div>
         <div class="submit">
-          <button type="submit" class="btn btn-dark">Submit</button>
+          <button type="submit" 
+                  class="btn btn-dark"
+                  :disabled="disableSubmission">
+            Submit
+          </button>
         </div>
       </form>
     </div>
@@ -70,11 +74,13 @@
         age: null,
         password: '',
         confirmPassword: '',
-        terms: false
+        terms: false,
+        disableSubmission: false
       }
     },
     methods: {
       onSubmit () {
+        this.disableSubmission = true
         const formData = {
           username: this.username,
           password: this.password,
@@ -83,6 +89,8 @@
           terms: this.terms
         }
         this.$store.dispatch('signup', formData)
+          .then(() => this.$router.push('/'))
+          .catch(() => this.disableSubmission = false)
       }
     },
     created() {
