@@ -22,7 +22,7 @@
 <script>
   export default {
     computed: {
-      auth () {
+      auth() {
         return this.$store.getters.isAuthenticated
       }
     },

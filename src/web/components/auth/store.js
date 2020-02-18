@@ -171,11 +171,9 @@ const actions = {
       axios.delete('/api/auth/logout', {
         params: { refreshToken }
       })
-      .then(resp => {
-        result()
-        commit('addMessages', resp.data.messages )
-        console.log('adddin messages')
+      .then(response => {
         dispatch('deregisterLoggedUser')
+        result()
       })
       .catch(error => {
         commit('addMessages', messageUtil.errorFromResponseMessages(error, 'logOutError'))
