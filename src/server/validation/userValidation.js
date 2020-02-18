@@ -1,58 +1,54 @@
 const extendedArray = require('../util/extendedArray')
 const userDao = require('../dao/userDao')
 const encryptUtil = require('../util/encryptUtil')
+const messageUtil = require('../../common/messageUtil')
 
-function getValidationsForPasswordDefinition( password, messageForId, messageId, fieldName) {
+function getValidationsForPasswordDefinition( password, messageForId, messageIdPrefix, fieldName) {
     const minLength = 6
     let validationMessages = new extendedArray()
-    validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
-    validationMessages.pushDefined(stringMin(password, messageForId, messageId, fieldName, minLength))
-    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'A-Z', 'uppercase character'))
-    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, 'a-z', 'lowercase character'))
-    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, '0-9', 'number'))
-    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageId, fieldName, regExpEscape('"\'-[]{}()*+!<=:?./\\^$|#@,'), 'special characters like "\'-[]{}()*+!<=:?./\\^$|#@,'))
+    validationMessages.pushDefined(required(password, messageForId, messageIdPrefix, fieldName))
+    validationMessages.pushDefined(stringMin(password, messageForId, messageIdPrefix, fieldName, minLength))
+    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageIdPrefix, fieldName, 'A-Z', 'uppercase character'))
+    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageIdPrefix, fieldName, 'a-z', 'lowercase character'))
+    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageIdPrefix, fieldName, '0-9', 'number'))
+    validationMessages.pushDefined(mustContainOneOf(password, messageForId, messageIdPrefix, fieldName, regExpEscape('"\'-[]{}()*+!<=:?./\\^$|#@,'), 'special characters like "\'-[]{}()*+!<=:?./\\^$|#@,'))
     return validationMessages
 }
 
 module.exports = {
     validateUsername: function (username) {
         const messageForId = "username"
-        const messageId = "usernameValidation"
+        const messageIdPrefix = "usernameValidation"
         const fieldName = "Username"
         let validationMessages = new extendedArray()
 
-        validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
-        validationMessages.pushDefined(isEmail(username, messageForId, messageId, fieldName))
+        validationMessages.pushDefined(required(username, messageForId, messageIdPrefix, fieldName))
+        validationMessages.pushDefined(isEmail(username, messageForId, messageIdPrefix, fieldName))
 
         return validationMessages
     },
     validateUsernameDoesntExist(username) {
         const messageForId = "username"
-        const messageId = "usernameValidation"
+        const messageIdPrefix = 'usernameDoesntExist'
         let validationMessages = new extendedArray()
 
         const persistedUser = userDao.retrieveUserByUsername(username)
         if(persistedUser) {
-            validationMessages.push({
-                messageForId,
-                messageId,
-                message: `Username already registered`,
-                category: 'validationMessage'
-            })
+            validationMessages.push(messageUtil.validationMessage(messageIdPrefix, `Username not registered`, messageForId))
         }
         return validationMessages
     },
     validateUsernameExists(username) {
         const messageForId = "username"
-        const messageId = "usernameValidation"
+        const messageIdPrefix = "usernameValidation"
         let validationMessages = new extendedArray()
 
         const persistedUser = userDao.retrieveUserByUsername(username)
         if(!persistedUser || !persistedUser.username) {
             validationMessages.push({
                 messageForId,
-                messageId,
-                message: `Username not registered`,
+                messageIdPrefix,
+                message: `Username already registered`,
                 category: 'validationMessage'
             })
         }
@@ -60,161 +56,122 @@ module.exports = {
     },
     validateUsernameForLogin: function (username) {
         const messageForId = "username"
-        const messageId = "usernameValidation"
+        const messageIdPrefix = "usernameValidation"
         const fieldName = "Username"
         let validationMessages = new extendedArray()
 
-        validationMessages.pushDefined(required(username, messageForId, messageId, fieldName))
+        validationMessages.pushDefined(required(username, messageForId, messageIdPrefix, fieldName))
         
         return validationMessages
     },
     validatePassword: function (password) {
         const messageForId = "password"
-        const messageId = "passwordValidation"
+        const messageIdPrefix = "passwordValidation"
         const fieldName = "Password"
 
-        let validationMessages = getValidationsForPasswordDefinition(password, messageForId, messageId, fieldName)
+        let validationMessages = getValidationsForPasswordDefinition(password, messageForId, messageIdPrefix, fieldName)
 
         return validationMessages
     },
     validateConfirmPassword: function (password, confirmPassword) {
         const messageForId = "confirm-password"
-        const messageId = "confirmPasswordValidation"
+        const messageIdPrefix = "confirmPasswordValidation"
         const fieldName = "Confirm Password"
         const passwordFieldName = "Password"
         let validationMessages = new extendedArray()
 
-        validationMessages.pushDefined(required(confirmPassword, messageForId, messageId, fieldName))
-        validationMessages.pushDefined(areEqual(confirmPassword, messageForId, messageId, fieldName, password, passwordFieldName))
+        validationMessages.pushDefined(required(confirmPassword, messageForId, messageIdPrefix, fieldName))
+        validationMessages.pushDefined(areEqual(confirmPassword, messageForId, messageIdPrefix, fieldName, password, passwordFieldName))
 
         return validationMessages
     },
     validatePasswordForLogin: function (password) {
         const messageForId = "password"
-        const messageId = "passwordValidation"
+        const messageIdPrefix = "passwordValidation"
         const fieldName = "Password"
         let validationMessages = new extendedArray()
 
-        validationMessages.pushDefined(required(password, messageForId, messageId, fieldName))
+        validationMessages.pushDefined(required(password, messageForId, messageIdPrefix, fieldName))
         return validationMessages
     },
     validateNewPassword: function (newPassword, oldPassword) {
         const messageForId = "new-password"
-        const messageId = "newPasswordValidation"
+        const messageIdPrefix = "newPasswordValidation"
         const fieldName = "New Password"
         
-        let validationMessages = getValidationsForPasswordDefinition(newPassword, messageForId, messageId, fieldName)
-        validationMessages.pushDefined(newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageId, fieldName, oldPassword))
+        let validationMessages = getValidationsForPasswordDefinition(newPassword, messageForId, messageIdPrefix, fieldName)
+        validationMessages.pushDefined(newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageIdPrefix, fieldName, oldPassword))
 
         return validationMessages
     },
     validateUserIsAuthenticated: function (username, password) {
         const messageForId = "password"
-        const messageId = "passwordValidation"
+        const messageIdPrefix = "passwordValidation"
         const fieldName = "Password"
         let validationMessages = new extendedArray()
 
         if(!authenticateUsernameAndPassword({username, password})) {
-            validationMessages.push({
-                messageId: 'changePasswordValidation',
-                category: 'validationMessage',
-                message: 'Wrong password'
-            })
+            validationMessages.push(messageUtil.validationMessage(messageIdPrefix, 'Wrong password', messageForId))
         }
         return validationMessages
     },
     validateAge: function (age) {
         const messageForId = "age"
-        const messageId = "ageValidation"
+        const messageIdPrefix = "ageValidation"
         const fieldName = "Age"
         const minAge = 18
         let validationMessages = new extendedArray()
 
-        validationMessages.pushDefined(required(age, messageForId, messageId, fieldName))
-        validationMessages.pushDefined(numberMin(age, messageForId, messageId, fieldName, minAge))
+        validationMessages.pushDefined(required(age, messageForId, messageIdPrefix, fieldName))
+        validationMessages.pushDefined(numberMin(age, messageForId, messageIdPrefix, fieldName, minAge))
 
         return validationMessages
     },
     validateTerms: function (terms) {
         const messageForId = "terms"
-        const messageId = "termsValidation"
+        const messageIdPrefix = "termsValidation"
         const fieldName = "Accepting Terms"
         let validationMessages = new extendedArray()
-        validationMessages.pushDefined(required(terms, messageForId, messageId, fieldName))
+        validationMessages.pushDefined(required(terms, messageForId, messageIdPrefix, fieldName))
 
         return validationMessages
     }
 }
-function required(input, messageForId, messageId, fieldName) {
+function required(input, messageForId, messageIdPrefix, fieldName) {
     if (!input) {
-        return {
-            messageForId,
-            messageId,
-            message: `${fieldName} is required`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `${fieldName} is required`, messageForId)
     }
 }
-function stringMin(input, messageForId, messageId, fieldName, min) {
+function stringMin(input, messageForId, messageIdPrefix, fieldName, min) {
     if (input && input.length < min) {
-        return {
-            messageForId,
-            messageId,
-            message: `${fieldName} should have at least ${min} characters`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `${fieldName} should have at least ${min} characters`, messageForId)
     }
 }
-function numberMin(input, messageForId, messageId, fieldName, min) {
+function numberMin(input, messageForId, messageIdPrefix, fieldName, min) {
     if (input && input < min) {
-        return {
-            messageForId,
-            messageId,
-            message: `The minimum allowed ${fieldName} is ${min}`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `The minimum allowed ${fieldName} is ${min}`, messageForId)
     }
 }
-function isEmail(input, messageForId, messageId, fieldName) {
+function isEmail(input, messageForId, messageIdPrefix, fieldName) {
     if (input && !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(input)) {
-        return {
-            messageForId,
-            messageId,
-            message: `${fieldName} must be a valid email`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `${fieldName} must be a valid email`, messageForId)
     }
 }
-function areEqual(input, messageForId, messageId, fieldName, input2, fieldName2) {
+function areEqual(input, messageForId, messageIdPrefix, fieldName, input2, fieldName2) {
     if (input && input2 && input !== input2) {
-        return {
-            messageForId,
-            messageId,
-            message: `${fieldName} is different from ${fieldName2}`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `${fieldName} is different from ${fieldName2}`, messageForId)
     }
 }
-function newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageId, fieldName, oldPassword) {
+function newPasswordMustNotBeEqualToPrevious(newPassword, messageForId, messageIdPrefix, fieldName, oldPassword) {
     if (newPassword && oldPassword && newPassword === oldPassword) {
-        return {
-            messageForId,
-            messageId,
-            message: `${fieldName} must be different from previous password`,
-            category: 'validationMessage'
-        }
+        return messageUtil.validationMessage(messageIdPrefix, `${fieldName} must be different from previous password`, messageForId)
     }
 }
-function mustContainOneOf(input, messageForId, messageId, fieldName, chars, charsName) {
+function mustContainOneOf(input, messageForId, messageIdPrefix, fieldName, chars, charsName) {
     if (input) {
         let re = new RegExp('[' + chars + ']');
         if (!re.test(input)) {
-            return {
-                messageForId,
-                messageId,
-                message: `${fieldName} must contain a ${charsName}`,
-                category: 'validationMessage'
-            }
+            return messageUtil.validationMessage(messageIdPrefix, `${fieldName} must contain a ${charsName}`, messageForId)
         }
     }
 }

@@ -51,7 +51,7 @@
       },
       computed: {
         userSessions () {
-          return this.$store.getters.userSessions | []
+          return this.$store.getters.userSessions
         }      
       },
       methods: {
@@ -59,7 +59,8 @@
               this.$store.dispatch('logItOut', this.userSessions[index].refreshToken)
           },
           isCurrentSession(index) {
-            return this.userSessions[index].refreshToken === this.$store.getters.user.refreshToken 
+            if(this.userSessions && this.$store.getters.user)
+              return this.userSessions[index].refreshToken === this.$store.getters.user.refreshToken 
           }
       },
       components: {

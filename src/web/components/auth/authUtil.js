@@ -1,4 +1,5 @@
 import store from '../../store' //main store
+import messageUtil from '../../../common/messageUtil'
 
 const authUtil = {
     authRouteAccess(next) {
@@ -17,11 +18,7 @@ const authUtil = {
                         if(refreshToken) { 
                             store.dispatch('logout', refreshToken)
                                 .then(() => {
-                                    store.commit('addMessage', {
-                                        messageId: 'errorWhileAutoLoginMessage',
-                                        category: 'errorMessage',
-                                        message: 'Something wrong happened when trying to auto login:' + error
-                                    })
+                                    store.commit('addMessage', messageUtil.errorMessage('autoLogin', 'Something wrong happened when trying to auto login:' + error))
                                 })
                                 .catch(() => {})
                         }
@@ -32,11 +29,7 @@ const authUtil = {
                     if(refreshToken) {
                         store.dispatch('logout', refreshToken)
                             .then(() => {
-                                store.commit('addMessage', {
-                                    messageId: 'errorWhileAutoLoginMessage',
-                                    category: 'errorMessage',
-                                    message: 'Something wrong happened when trying to auto login:' + error
-                                })
+                                store.commit('addMessage', messageUtil.errorMessage('autoLogin', 'Something wrong happened when trying to auto login:' + error))
                             })
                             .catch(() => {})
                     }
@@ -48,11 +41,7 @@ const authUtil = {
             next()
         } else {
             store.commit('clearAllMessages')
-            store.commit('addMessage', {
-                messageId: 'logInBeforeContinuingMessage',
-                category: 'warningMessage',
-                message: 'Please log in before continuing'
-              })
+            store.commit('addMessage', messageUtil.warningMessage('userNotLoggedIn', 'Please log in before continuing'))
             next('/signin')
         }
     }, 

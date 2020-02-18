@@ -8,22 +8,21 @@ const logonDataDao = require('../dao/logonDataDao')
 const extendedArray = require('../util/extendedArray')
 const mailSender = require('../mail/mailSender')
 const requestUtil = require('../util/requestUtil')
+const messageUtil = require('../../common/messageUtil')
+const authEndpoints = require('./authEndpoints')
 
 
-router.post('/login', authenticate)
+router.post(authEndpoints.LOGIN, authenticate)
 
-router.delete('/logout', (req, res) => {
+router.delete(authEndpoints.LOGOUT, (req, res) => {
     revokeRefreshToken(req.query.refreshToken)
-    res.status(204).send({ 
-        messages: [{
-            messageId: 'loggedOut',
-            category: 'warningMessage',
-            message: 'You\'ve been logged out.'
-        }]
+    res.status(200).send({ 
+      messages: messageUtil.successMessages(authEndpoints.LOGIN, 
+                                            'You\'ve been logged out.')
     })
-  })
+})
 
-router.post('/signup', (req, res) => {
+router.post(authEndpoints.SIGNUP, (req, res) => {
     let validationMessages = new extendedArray()
    
     // validate form
@@ -36,7 +35,7 @@ router.post('/signup', (req, res) => {
     
     // return 422 in case of invalid
     if(validationMessages.length) {
-      return res.status(422).send({ messages: validationMessages.filter((vm) => vm != undefined) })
+      return res.status(422).send({ messages: validationMessages })
     }
   
     const password = encryptUtil.cryptPassword(req.body.password)
@@ -56,15 +55,12 @@ router.post('/signup', (req, res) => {
     authenticate(req, res)
 })
 
-router.get('/confirmEmail', (req, res) => {
+router.get(authEndpoints.CONFIRM_EMAIL, (req, res) => {
     const emailConfirmationToken = req.query.emailConfirmationToken
   
     const emailConfirmationValidationErrorMessage = { 
-        messages: [{
-            messageId: 'emailConfirmationError',
-            category: 'validationMessage',
-            message: `The link to confirm email is not valid`
-        }]
+      messages: messageUtil.successMessages(authEndpoints.CONFIRM_EMAIL, 
+                                            `The link to confirm email is not valid`)
     }
   
     if (emailConfirmationToken == null || !isEmailConfirmationTokenPending(emailConfirmationToken)) {
@@ -79,16 +75,13 @@ router.get('/confirmEmail', (req, res) => {
       persistedUser.confirmedEmail = true
       userDao.updateUser(persistedUser)
       res.json({
-        messages: [{
-            messageId: 'emailConfirmationSuccess',
-            message: `The email address has been confirmed for ${ username }`,
-            category: 'successMessage'
-        }]
+        messages: messageUtil.successMessages(authEndpoints.CONFIRM_EMAIL, 
+                                              `The email address has been confirmed for ${ username }`)
       })
     })
   })
 
-router.post('/changePassword', (req, res) => {
+router.post(authEndpoints.CHANGE_PASSWORD, (req, res) => {
     let accessToken = null
     let authorizationHeader = req.headers['authorization']
     if(!authorizationHeader) res.sendStatus(403)
@@ -106,7 +99,7 @@ router.post('/changePassword', (req, res) => {
     validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.newPassword, req.body.confirmPassword))
     // return 422 in case of invalid
     if(validationMessages.length) {
-      return res.status(422).send({ messages: validationMessages.filter((vm) => vm != undefined) })
+      return res.status(422).send({ messages: validationMessages })
     }
   
     authData.username = username
@@ -115,15 +108,12 @@ router.post('/changePassword', (req, res) => {
       user.password = password
       userDao.updateUser(user);
       res.status(200).send({
-          messages: [{
-            messageId: 'changePasswordSuccess',
-            category: 'successMessage',
-            message: 'Your password was successfully changed.'
-          }]
+          messages: messageUtil.successMessages(authEndpoints.CHANGE_PASSWORD, 
+                                              'Your password was successfully changed.')
       })
 })
   
-router.post('/token', (req, res) => {
+router.post(authEndpoints.TOKEN, (req, res) => {
     const refreshToken = req.body.refreshToken
   
     if (refreshToken == null) return res.sendStatus(401) //unauthorized
@@ -146,7 +136,7 @@ router.post('/token', (req, res) => {
     })
 })
 
-router.post('/sendEmailToRetrievePassword', (req, res) => {
+router.post(authEndpoints.SEND_EMAIL_TO_RETRIEVE_PASSWORD, (req, res) => {
     let validationMessages = new extendedArray()
    
     // validate form
@@ -156,39 +146,30 @@ router.post('/sendEmailToRetrievePassword', (req, res) => {
     
     // return 422 in case of invalid
     if(validationMessages.length) {
-      return res.status(422).send(validationMessages)
+      return res.status(422).send({
+        messages: validationMessages
+      })
     }
     const retrievePasswordToken = generateRetrievePasswordToken({ 'username': req.body.username })
     mailSender.sendRetrievePasswordMail(req.body, retrievePasswordToken, function(error, info) {
       if (error) {
         res.status(500).send({
-            messages: [{
-                messageId: 'sendEmailToRetrievePasswordError',
-                message: error,
-                category: 'errorMessage'
-            }]
+          messages: messageUtil.errorMessages(authEndpoints.SEND_EMAIL_TO_RETRIEVE_PASSWORD, error)
         })
       } else {
         res.status(200).send({
-            messages: [{
-                messageId: 'sendEmailToRetrievePasswordSuccess',
-                message: `An email was sent to ${req.body.username}. Check you inbox mail.`,
-                category: 'successMessage'
-            }]
+          messages: messageUtil.successMessages(authEndpoints.SEND_EMAIL_TO_RETRIEVE_PASSWORD, 
+                                                `An email was sent to ${req.body.username}. Check you inbox mail.`)
         })
       }
     })
     
 })
    
-router.post('/changeLostPassword', (req, res) => {
+router.post(authEndpoints.CHANGE_LOST_PASSWORD, (req, res) => {
     jwt.verify(req.body.retrievePasswordToken, process.env.RETRIEVE_PASSWORD_TOKEN_SECRET, (err, user) => {
       if (err) return res.status(403).send({
-            messages: [{
-              messageId: 'changeLostPasswordError',
-              message: `The token provided is not valid`,
-              category: 'errorMessage'
-            }]
+        messages: messageUtil.validationMessages(authEndpoints.CHANGE_LOST_PASSWORD, `The token provided is not valid`)
       }) 
       
       const username = user.username
@@ -201,7 +182,7 @@ router.post('/changeLostPassword', (req, res) => {
         // return 422 in case of invalid
         if(validationMessages.length) {
           return res.status(422).send({
-              messages: validationMessages.filter((vm) => vm != undefined)
+              messages: validationMessages
           })
         }
         
@@ -209,26 +190,18 @@ router.post('/changeLostPassword', (req, res) => {
         persistedUser.password = password
         userDao.updateUser(persistedUser);
         res.status(200).send({
-            messages: [{
-                messageId: 'successOnChangingPassword',
-                category: 'successMessage',
-                message: 'Your password was successfully changed.'
-            }]
+            messages: messageUtil.successMessages(authEndpoints.CHANGE_LOST_PASSWORD, `Your password was successfully changed.`)
         })
       } else {
         res.status(403).send({
-            messages: [{
-                messageId: 'changeLostPasswordError',
-                message: `The token provided is not valid`,
-                category: 'errorMessage'
-            }]
+            messages: messageUtil.validationMessages(authEndpoints.CHANGE_LOST_PASSWORD, `The token provided is not valid`)
         }) 
       }
       
     })
 })
 
-router.get('/userSessions', (req, res) => {
+router.get(authEndpoints.USER_SESSIONS, (req, res) => {
     let accessToken = null
     let authorizationHeader = req.headers['authorization']
     if(!authorizationHeader) res.sendStatus(403)
@@ -251,7 +224,7 @@ function authenticate(req, res) {
     validationMessages.pushArray(userValidation.validatePasswordForLogin(req.body.password))
     // return 422 in case of invalid
     if(validationMessages.length) {
-      return res.status(422).send({ messages: validationMessages.filter((vm) => vm != undefined) })
+      return res.status(422).send({ messages: validationMessages })
     }
   
     const authData = req.body
@@ -283,11 +256,7 @@ function authenticate(req, res) {
       })
     } else {
       return res.status(401).send({
-          messages: [{
-            messageId: 'loginFailed',
-            category: 'validationMessage',
-            message: 'Username or Password invalid'
-          }]
+          messages: messageUtil.validationMessages('usernameAndPasswordAuthentication', 'Username or Password invalid')
       })
     }
 }
