@@ -33,11 +33,11 @@ const mutations = {
 const actions = {
   getUserSessions({commit}) {
     commit('clearAllMessages')
-    return new Promise((result, reject) => {
+    return new Promise((resolve, reject) => {
       axios.get('/api/auth/userSessions')
       .then(response => {
         commit('storeUserSessions', response.data)
-        result()
+        resolve()
       })
       .catch(error => {
         commit('addMessages', messageUtil.errorFromResponseMessages(error, 'userSessionsError'))
@@ -47,11 +47,11 @@ const actions = {
   },
   changePassword({commit}, authData) {
     commit('clearAllMessages')
-    return new Promise((result, reject) => {
+    return new Promise((resolve, reject) => {
       axios.post('/api/auth/changePassword', authData)
         .then(resp => {
           commit('addMessages', resp.data.messages)
-          result()
+          resolve()
         })
         .catch(error => {
           commit('addMessages', messageUtil.errorFromResponseMessages(error, 'changePasswordError'))
@@ -84,12 +84,12 @@ const actions = {
 
   signup({ commit, dispatch }, authData) {
     commit('clearAllMessages')
-    return new Promise( (result,reject) => {
+    return new Promise( (resolve,reject) => {
       axios.post('/api/auth/signup', authData)
         .then(resp => {
           commit('addMessages', resp.data.messages )
           dispatch('registerLoggedUser', resp)
-          result()
+          resolve()
         })
         .catch(error => {
           commit('addMessages', messageUtil.errorFromResponseMessages(error, 'signupError'))
@@ -100,7 +100,7 @@ const actions = {
 
   login({ commit, dispatch }, authData) {
     commit('clearAllMessages')
-    return new Promise((result, rejection) => {
+    return new Promise((resolve, rejection) => {
       axios.post('/api/auth/login', {
         username: authData.username,
         password: authData.password,
@@ -109,7 +109,7 @@ const actions = {
         .then(resp => {
           commit('addMessages', resp.data.messages )
           dispatch('registerLoggedUser', resp)
-          result()
+          resolve()
         })
         .catch(error => {
             commit('addMessages', messageUtil.errorFromResponseMessages(error, 'loginError'))
@@ -150,14 +150,14 @@ const actions = {
   },
   logItOut({ commit, dispatch }, refreshToken) {
     commit('clearAllMessages')
-    return new Promise((result, reject) => {
+    return new Promise((resolve, reject) => {
       axios.delete('/api/auth/logout', {
         params: { refreshToken: refreshToken }
       })
       .then(resp => {
         commit('addMessages', resp.data.messages )
         dispatch('getUserSessions')
-        result()
+        resolve()
       })
       .catch(error => {
         commit('addMessages', messageUtil.errorFromResponseMessages(error, 'logItOutError'))
@@ -167,13 +167,13 @@ const actions = {
   },
   logout({ commit, dispatch }, refreshToken) {
     commit('clearAllMessages')
-    return new Promise((result, reject) => {
+    return new Promise((resolve, reject) => {
       axios.delete('/api/auth/logout', {
         params: { refreshToken }
       })
       .then(response => {
         dispatch('deregisterLoggedUser')
-        result()
+        resolve()
       })
       .catch(error => {
         commit('addMessages', messageUtil.errorFromResponseMessages(error, 'logOutError'))
@@ -183,13 +183,13 @@ const actions = {
   },
   confirmEmail({ commit, dispatch }, emailConfirmationToken) {
     commit('clearAllMessages')
-    return new Promise((result, reject) => {
+    return new Promise((resolve, reject) => {
         axios.get('/api/auth/confirmEmail', {
           params: { emailConfirmationToken }
         })
         .then(response => {
           commit('addMessages', response.data)
-          result()
+          resolve()
         })
         .catch(error => {
           commit('addMessages', messageUtil.errorFromResponseMessages(error, 'confirmEmailError'))
