@@ -1,7 +1,7 @@
-const extendedArray = require('../util/extendedArray')
-const userDao = require('../dao/userDao')
-const encryptUtil = require('../util/encryptUtil')
-const messageUtil = require('../../common/messageUtil')
+const extendedArray = require('../../util/extendedArray')
+const userDao = require('../../dao/userDao')
+const encryptUtil = require('../../util/encryptUtil')
+const messageUtil = require('../../../common/messageUtil')
 
 function getValidationsForPasswordDefinition( password, messageForId, messageIdPrefix, fieldName) {
     const minLength = 6

@@ -35,10 +35,10 @@
 <script>
   import messages from '../messages/messages.vue'
   import validationMessage from '../messages/validationMessage.vue'
-  import removeMessagesWhenLeaving from '../messages/removeMessagesWhenLeaving.js'
+  import messagesMixin from '../messages/messagesMixin'
   
   export default {
-    mixins: [removeMessagesWhenLeaving],
+    mixins: [messagesMixin],
     data () {
       return {
         username: '',

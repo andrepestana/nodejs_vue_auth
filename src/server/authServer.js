@@ -1,7 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-const authRoutes = require('./routes/auth')
+const authRoutes = require('./api/auth/auth.routes')
 app.use(express.json())
 
 if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {

@@ -47,7 +47,6 @@ const authUtil = {
     }, 
     authRouteForRetrievingPassword(to, next) {
         if (to.query.retrievePasswordToken) {
-
             next()
         } else {
             next('/signin')
