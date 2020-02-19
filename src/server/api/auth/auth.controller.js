@@ -8,9 +8,65 @@ const mailSender = require('../../mail/mailSender')
 const requestUtil = require('../../util/requestUtil')
 const messageUtil = require('../../../common/messageUtil')
 
+const passport = require('passport')
+const initializePassport = require('../../config/passport-config')
+initializePassport(
+  passport,
+  userDao.retrieveUserByUsername,
+  userDao.retrieveUserById
+)
 
-exports.login = authenticate;
+//exports.login = authenticate;
+exports.login = function(req, res, next) {
+    
+    let validationMessages = new extendedArray()
 
+    validationMessages.pushArray(userValidation.validateUsernameForLogin(req.body.username))
+    validationMessages.pushArray(userValidation.validatePasswordForLogin(req.body.password))
+    // return 422 in case of invalid
+    if (validationMessages.length) {
+        return res.status(422).send({ messages: validationMessages })
+    }
+
+    passport.authenticate('local', function(err, user, info) {
+        if (err) { 
+            return res.status(401).send({
+                messages: messageUtil.validationMessages('usernameAndPasswordAuthentication', 'Username or Password invalid')
+            })
+        }
+        if (!user) { 
+            return res.status(401).send({
+                messages: messageUtil.validationMessages('usernameAndPasswordAuthentication', 'error.......')
+            })
+        }
+        
+        const accessToken = generateAccessToken(user)
+        const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
+
+        let clientInfo = requestUtil.getClientInfo(req)
+        let accessTokenExpirationDate = jwt.decode(accessToken).exp * 1000
+        let refreshTokenExpirationDate = jwt.decode(refreshToken).exp * 1000
+        let refreshTokenCreatedDate = jwt.decode(refreshToken).iat * 1000
+        logonDataDao.saveLogonData({
+            username: user.username,
+            refreshToken,
+            clientInfo,
+            refreshTokenCreatedDate,
+            refreshTokenExpirationDate,
+            remoteAddress: requestUtil.getRemoteAddress(req)
+        })
+
+        return res.status(200).send({
+            accessToken,
+            refreshToken,
+            username: user.username,
+            accessTokenExpirationDate,
+            refreshTokenExpirationDate
+        })
+        
+    })(req, res, next)
+    
+}
 
 exports.logout = function (req, res) {
     revokeRefreshToken(req.query.refreshToken)
