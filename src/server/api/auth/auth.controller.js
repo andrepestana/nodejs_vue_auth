@@ -142,7 +142,7 @@ exports.changePassword = function (req, res) {
     const username = jwt.decode(accessToken).username
     let validationMessages = new extendedArray()
     validationMessages.pushArray(userValidation.validatePasswordForLogin(req.body.password))
-    validationMessages.pushArray(userValidation.validateUserIsAuthenticated(username, req.body.password))
+    if (!validationMessages.length) validationMessages.pushArray(userValidation.validatePasswordMatches(username, req.body.password))
     validationMessages.pushArray(userValidation.validateNewPassword(req.body.newPassword, req.body.password))
     validationMessages.pushArray(userValidation.validateConfirmPassword(req.body.newPassword, req.body.confirmPassword))
     // return 422 in case of invalid

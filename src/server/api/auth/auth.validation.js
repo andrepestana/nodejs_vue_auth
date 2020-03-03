@@ -104,7 +104,7 @@ module.exports = {
 
         return validationMessages
     },
-    validateUserIsAuthenticated: function (username, password) {
+    validatePasswordMatches: function (username, password) {
         const messageForId = "password"
         const messageIdPrefix = "passwordValidation"
         const fieldName = "Password"
