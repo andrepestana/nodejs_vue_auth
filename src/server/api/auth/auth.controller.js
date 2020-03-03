@@ -29,17 +29,12 @@ exports.login = function(req, res, next) {
     }
 
     passport.authenticate('local', function(err, user, info) {
-        if (err) { 
+        if (err || !user) { 
             return res.status(401).send({
                 messages: messageUtil.validationMessages('usernameAndPasswordAuthentication', 'Username or Password invalid')
             })
         }
-        if (!user) { 
-            return res.status(401).send({
-                messages: messageUtil.validationMessages('usernameAndPasswordAuthentication', 'error.......')
-            })
-        }
-        
+               
         const accessToken = generateAccessToken(user)
         const refreshToken = generateRefreshToken(user, process, process.env.REFRESH_TOKEN_SECRET)
 

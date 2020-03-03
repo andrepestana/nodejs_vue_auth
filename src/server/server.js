@@ -2,8 +2,16 @@ require('dotenv').config()
 
 const express = require('express')
 const app = express()
-const jwt = require('jsonwebtoken')
+const userDao = require('./dao/userDao')
 const postDao = require('./dao/postDao')
+
+const passport = require('passport')
+const initializePassport = require('./config/passport-config')
+initializePassport(
+  passport,
+  userDao.retrieveUserByUsername,
+  userDao.retrieveUserById
+)
 
 app.use(express.json())
 
@@ -22,20 +30,9 @@ if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
   });
 }
 
-app.get('/posts', authenticateToken, (req, res) => {
+app.get('/posts', passport.authenticate('jwt', { session: false }), (req, res) => {
     res.json(postDao.findPostsByUsername(req.user.username))
 })
 
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
-  if (token == null) return res.sendStatus(401)
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403)
-    req.user = user
-    next()
-  })
-}
 
 app.listen(3000)
