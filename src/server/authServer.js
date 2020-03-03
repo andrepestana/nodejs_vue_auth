@@ -2,8 +2,16 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const authRoutes = require('./api/auth/auth.routes')
-app.use(express.json())
+const userDao = require('./dao/userDao')
+const passport = require('passport')
+const initializePassport = require('./config/passport-config')
+initializePassport(
+  passport,
+  userDao.retrieveUserByUsername,
+  userDao.retrieveUserById
+)
 
+app.use(express.json())
 if (process.env.ALLOW_ACCESS_FROM_ANY_ORIGIN) {
   app.all('/*', function (req, res, next) {
     // CORS headers

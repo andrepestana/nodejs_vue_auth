@@ -7,14 +7,8 @@ const extendedArray = require('../../util/extendedArray')
 const mailSender = require('../../mail/mailSender')
 const requestUtil = require('../../util/requestUtil')
 const messageUtil = require('../../../common/messageUtil')
-
 const passport = require('passport')
-const initializePassport = require('../../config/passport-config')
-initializePassport(
-  passport,
-  userDao.retrieveUserByUsername,
-  userDao.retrieveUserById
-)
+
 
 //exports.login = authenticate;
 exports.login = function(req, res, next) {
